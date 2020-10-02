@@ -7,12 +7,32 @@
 #include "toz3Options.h"
 
 
+class Pruner : public Transform{
+    public: 
+        Pruner(){
+            setName("Pruner");
+        }
+
+        IR::Node* preorder(IR::Statement *s);
+
+};
+
+
+IR::Node* Pruner::preorder(IR::Statement *s){
+    if(s->node_type_name()== "AssignmentStatement"){
+
+        return nullptr;
+}    else
+        return s;
+
+}
+
 int main(int argc, char *const argv[]) {
 
     AutoCompileContext autoP4toZ3Context(new P4TOZ3::P4toZ3Context);
     auto &options = P4TOZ3::P4toZ3Context::get().options();
     options.langVersion = CompilerOptions::FrontendVersion::P4_16;
-
+    
     if (options.process(argc, argv) != nullptr) {
         options.setInputFile();
     }
@@ -31,8 +51,21 @@ int main(int argc, char *const argv[]) {
 
     if (program != nullptr && ::errorCount() == 0) {
 
-                P4::ToP4 *top4 = new P4::ToP4(&std::cout, false);
-                program->apply(*top4);
+
+                // P4::ToP4 *before = new P4::ToP4(&std::cout, false);
+                // program->apply(*before);
+
+
+                Pruner *pruner = new Pruner();
+                program = program->apply(*pruner);
+
+
+                P4::ToP4 *after = new P4::ToP4(&std::cout, false);
+    
+
+                program->apply(*after);
+
+
 
         }
     

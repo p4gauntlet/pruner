@@ -1,30 +1,30 @@
 
-set (SIMPLE_OUT_SRCS
-    test.cpp
+set (PRUNER_SRCS
+    main.cpp
     toz3Options.cpp
     )
-set (SIMPLE_OUT_HDRS
+set (PRUNER_HDRS
      toz3Options.h
 
 	)
 
 
 # extensions are unpleasant with unified builds
-build_unified(SIMPLE_OUT_SRCS)
+build_unified(PRUNER_SRCS)
 
-add_executable(simple_out ${SIMPLE_OUT_SRCS})
-target_link_libraries (simple_out ${P4C_LIBRARIES} ${P4C_LIB_DEPS})
-add_dependencies(simple_out frontend)
+add_executable(pruner ${PRUNER_SRCS})
+target_link_libraries (pruner ${P4C_LIBRARIES} ${P4C_LIB_DEPS})
+add_dependencies(pruner frontend)
 
 
-install(TARGETS simple_out  RUNTIME DESTINATION ${P4C_RUNTIME_OUTPUT_DIRECTORY})
+install(TARGETS pruner  RUNTIME DESTINATION ${P4C_RUNTIME_OUTPUT_DIRECTORY})
 
-add_custom_target(linksimple_out
-  COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/simple_out ${P4C_BINARY_DIR}/simple_out
+add_custom_target(linkpruner
+  COMMAND ${CMAKE_COMMAND} -E create_symlink ${CMAKE_CURRENT_BINARY_DIR}/simple_out ${P4C_BINARY_DIR}/pruner
   COMMAND ${CMAKE_COMMAND} -E create_symlink ${P4C_BINARY_DIR}/p4include ${CMAKE_CURRENT_BINARY_DIR}/p4include
   COMMAND ${CMAKE_COMMAND} -E create_symlink ${P4C_BINARY_DIR}/p4_14include ${CMAKE_CURRENT_BINARY_DIR}/p4_14include
 )
 
-add_dependencies(p4c_driver linksimple_out)
+add_dependencies(p4c_driver linkpruner)
 
 

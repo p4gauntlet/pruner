@@ -13,7 +13,9 @@ extern bit<64> call_extern(inout Headers val);
 
 parser p(packet_in pkt, out Headers hdr) {
     state start {
+
         transition parse_hdrs;
+
     }
     state parse_hdrs {
         pkt.extract(hdr.eth_hdr);
@@ -23,6 +25,10 @@ parser p(packet_in pkt, out Headers hdr) {
 
 control ingress(inout Headers h) {
     apply {
+        h.eth_hdr.eth_type = 1;
+
+        h.eth_hdr.eth_type = 1;
+        h.eth_hdr.eth_type = 1;
         h.eth_hdr.eth_type = 1;
     }
 }
