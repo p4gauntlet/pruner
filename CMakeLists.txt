@@ -2,10 +2,11 @@
 set (PRUNER_SRCS
     main.cpp
     toz3Options.cpp
+    pruner.cpp
     )
 set (PRUNER_HDRS
      toz3Options.h
-
+     pruner.h
 	)
 
 

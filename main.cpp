@@ -5,27 +5,9 @@
 
 #include "ir/ir.h"
 #include "toz3Options.h"
+#include "pruner.h"
 
 
-class Pruner : public Transform{
-    public: 
-        Pruner(){
-            setName("Pruner");
-        }
-
-        IR::Node* preorder(IR::Statement *s);
-
-};
-
-
-IR::Node* Pruner::preorder(IR::Statement *s){
-    if(s->node_type_name()== "AssignmentStatement"){
-
-        return nullptr;
-}    else
-        return s;
-
-}
 
 int main(int argc, char *const argv[]) {
 
@@ -56,7 +38,7 @@ int main(int argc, char *const argv[]) {
                 // program->apply(*before);
 
 
-                Pruner *pruner = new Pruner();
+                PRUNER::Pruner *pruner = new PRUNER::Pruner();
                 program = program->apply(*pruner);
 
 
