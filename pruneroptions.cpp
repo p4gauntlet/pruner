@@ -1,8 +1,8 @@
-#include "toz3Options.h"
+#include "pruneroptions.h"
 
-namespace P4TOZ3 {
+namespace P4PRUNER {
 
-toz3Options::toz3Options() {
+PrunerOptions::PrunerOptions() {
     registerOption(
         "--output", "file",
         [this](const char *arg) {
@@ -26,4 +26,4 @@ toz3Options::toz3Options() {
         "Enable random removal of statements.");
 }
 
-} // namespace P4TOZ3
+} // namespace P4PRUNER

@@ -1,13 +1,13 @@
-#ifndef _PRUNER_H
-#define _PRUNER_H
+#ifndef _P4PRUNER_H
+#define _P4PRUNER_H
 
 #include "ir/ir.h"
 
 
-namespace PRUNER{
+namespace P4PRUNER{
 
     class Pruner : public Transform{
-    public: 
+    public:
         Pruner(){
             setName("Pruner");
         }
@@ -17,4 +17,4 @@ namespace PRUNER{
     };
 }
 
-#endif
+#endif /* _P4PRUNER_H */

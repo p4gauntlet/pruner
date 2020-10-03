@@ -1,9 +1,6 @@
 #include "pruner.h"
 
-namespace PRUNER{
+namespace P4PRUNER {
 
-IR::Node* Pruner::preorder(IR::AssignmentStatement *s){
-
-        return nullptr;
-    }
-}
+IR::Node *Pruner::preorder(IR::AssignmentStatement *s) { return nullptr; }
+} // namespace P4PRUNER
