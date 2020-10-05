@@ -17,13 +17,6 @@ PrunerOptions::PrunerOptions() {
             return true;
         },
         "Whether to emit a p4 file after.");
-    registerOption(
-        "--prune", nullptr,
-        [this](const char *) {
-            do_rnd_prune = true;
-            return true;
-        },
-        "Enable random removal of statements.");
 }
 
 } // namespace P4PRUNER
