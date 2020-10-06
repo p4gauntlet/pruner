@@ -3,8 +3,10 @@
 #include "frontends/common/parseInput.h"
 #include "frontends/p4/toP4/toP4.h"
 #include "ir/ir.h"
-#include "lib/nullstream.h"
 #include "lib/cstring.h"
+#include "lib/nullstream.h"
+
+#include "unistd.h"
 
 #include "pruner.h"
 #include "pruneroptions.h"
@@ -39,34 +41,48 @@ int main(int argc, char *const argv[]) {
     }
 
     const IR::P4Program *program = nullptr;
-    int required_exit_code = system(("python3 "
-                                     "/home/roborobo/projects/gauntlet_paper/"
-                                     "gauntlet/validate_p4_translation.py -i" +
-                                     options.file)
-                                        .c_str());
+    // std::cout << "\nChecking " << options.file;
+    cstring command = "python3 /home/roborobo/projects/gauntlet_paper/gauntlet/"
+                      "validate_p4_translation.py -i ";
+    command += realpath(options.file, NULL);
+    // command += " > /dev/null";
+    // command += options.file;
+    // std::wcout << command;
+    int required_exit_code = system(command.c_str());
+    printf("%s\n", command);
+    std::cout << "Got code :" << required_exit_code << " for the main file";
     program = P4::parseP4File(options);
 
     if (program != nullptr && ::errorCount() == 0) {
         // P4::ToP4 *before = new P4::ToP4(&std::cout, false);
         // program->apply(*before);
 
-        P4PRUNER::Pruner *pruner = new P4PRUNER::Pruner();
-        for (int i = 0; i < 5; i++) {
-            auto temp = program;
-            temp = temp->apply(*pruner);
-            auto temp_f = new std::ofstream("temp.p4");
-            // printing the nodes
-            P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
-            temp->apply(*temp_p4);
-            int exit_code =
-                system("python3 "
-                       "/home/roborobo/projects/gauntlet_paper/gauntlet/"
-                       "validate_p4_translation.py -i temp.p4");
-            if (exit_code == required_exit_code) {
-                program = temp;
-            } else {
-                std::cout << "\n \nGot diff error code " << exit_code
-                          << "\n\n\n";
+        for (int j = 0; j < 10; j++) {
+            P4PRUNER::Pruner *pruner = new P4PRUNER::Pruner();
+            for (int i = 0; i < 100; i++) {
+                auto temp = program;
+                temp = temp->apply(*pruner);
+                auto temp_f = new std::ofstream("temp.p4");
+
+                P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
+                temp->apply(*temp_p4);
+                cstring new_command = "python3 "
+                                      "/home/roborobo/projects/gauntlet_paper/"
+                                      "gauntlet/validate_p4_translation.py -i ";
+                new_command += realpath("./temp.p4", NULL);
+                new_command += " 2> /dev/null";
+                // printf("For the changed file : %s\n", new_command);
+                int exit_code = system(new_command.c_str());
+
+                if (exit_code == required_exit_code) {
+                    program = temp;
+                    std::cout << "\n\n\nSuccess\n\n\n";
+                    break;
+                } else {
+                    std::cout << "\n \nGot diff error code " << exit_code
+                              << "instead of " << required_exit_code
+                              << "\n\n\n";
+                }
             }
         }
 

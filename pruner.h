@@ -16,7 +16,7 @@ class Pruner : public Transform {
     // IR::Node* preorder(IR::AssignmentStatement *s);
     IR::Node *preorder(IR::Statement *s);
     // void prune_p4();
-    std::vector<IR::Statement *> checked;
+    std::vector<IR::Node *> checked;
 };
 
 } // namespace P4PRUNER
