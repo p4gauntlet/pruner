@@ -22,6 +22,7 @@ cstring remove_extension(cstring filename) {
 }
 
 int main(int argc, char *const argv[]) {
+
     AutoCompileContext autoP4toZ3Context(new P4PRUNER::P4PrunerContext);
     auto &options = P4PRUNER::P4PrunerContext::get().options();
     options.langVersion = CompilerOptions::FrontendVersion::P4_16;
@@ -38,7 +39,11 @@ int main(int argc, char *const argv[]) {
     }
 
     const IR::P4Program *program = nullptr;
-
+    int required_exit_code = system(("python3 "
+                                     "/home/roborobo/projects/gauntlet_paper/"
+                                     "gauntlet/validate_p4_translation.py -i" +
+                                     options.file)
+                                        .c_str());
     program = P4::parseP4File(options);
 
     if (program != nullptr && ::errorCount() == 0) {
@@ -46,10 +51,27 @@ int main(int argc, char *const argv[]) {
         // program->apply(*before);
 
         P4PRUNER::Pruner *pruner = new P4PRUNER::Pruner();
-        program = program->apply(*pruner);
+        for (int i = 0; i < 5; i++) {
+            auto temp = program;
+            temp = temp->apply(*pruner);
+            auto temp_f = new std::ofstream("temp.p4");
+            // printing the nodes
+            P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
+            temp->apply(*temp_p4);
+            int exit_code =
+                system("python3 "
+                       "/home/roborobo/projects/gauntlet_paper/gauntlet/"
+                       "validate_p4_translation.py -i temp.p4");
+            if (exit_code == required_exit_code) {
+                program = temp;
+            } else {
+                std::cout << "\n \nGot diff error code " << exit_code
+                          << "\n\n\n";
+            }
+        }
 
+        std::cout << "\n\n\n**********new*********\n\n\n";
         P4::ToP4 *after = new P4::ToP4(&std::cout, false);
-
         program->apply(*after);
 
         // if the emit flag is enabled, also emit the new p4 version
