@@ -4,22 +4,14 @@ namespace P4PRUNER {
 
 IR::Node *Pruner::preorder(IR::Statement *s) {
 
-    if (s->is<IR::BlockStatement>()) {
-        // its a bit hard to prune block statements for now
-        return s;
+    return rand() % 100 < 10 ? nullptr : s;
+}
+
+IR::Node *Pruner::preorder(IR::BlockStatement *s) {
+    for (auto c : s->components) {
+        visit(c);
     }
 
-    // bool found = false;
-    for (int i = 0; i < checked.size(); i++) {
-        if (s->getNode()->equiv(*checked.at(i))) {
-            // found = true ;
-            // printf("Ofcourse thiss is working\n");
-            end_apply();
-            return s;
-        }
-    }
-    checked.push_back(s->getNode());
-
-    return nullptr;
+    return s;
 }
 } // namespace P4PRUNER

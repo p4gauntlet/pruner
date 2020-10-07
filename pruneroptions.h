@@ -16,6 +16,8 @@ class PrunerOptions : public CompilerOptions {
     bool emit_p4 = false;
     // input file is in CompilerOptions file
     bool do_rnd_prune = false;
+    cstring validator_script = nullptr;
+    bool print_pruned = true;
 };
 
 using P4PrunerContext = P4CContextWithOptions<PrunerOptions>;

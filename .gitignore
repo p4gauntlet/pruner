@@ -35,4 +35,7 @@
 .vscode/
 
 # validator analysis
-analysis.log
+*.log
+
+#temp files created by the pruner
+example_programs/temp.p4
