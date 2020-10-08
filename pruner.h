@@ -3,18 +3,24 @@
 
 #include "ir/ir.h"
 
+namespace P4PRUNER {
 
-namespace P4PRUNER{
+#define INFO(x) std::cout << x << std::endl;
 
-    class Pruner : public Transform{
-    public:
-        Pruner(){
-            setName("Pruner");
-        }
+class Pruner : public Transform {
+  public:
+    // IR::P4Program *program;
+    Pruner() {
+        setName("Pruner");
+        // program = p;
+    }
 
-        IR::Node* preorder(IR::AssignmentStatement *s);
+    IR::Node *preorder(IR::Statement *s);
+    IR::Node *preorder(IR::BlockStatement *s);
+    // void prune_p4();
+    // std::vector<IR::Node *> checked;
+};
 
-    };
-}
+} // namespace P4PRUNER
 
 #endif /* _P4PRUNER_H */

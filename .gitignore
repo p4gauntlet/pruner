@@ -33,3 +33,9 @@
 
 # vscode
 .vscode/
+
+# validator analysis
+*.log
+
+# temp files created by the pruner
+*_stripped.p4
