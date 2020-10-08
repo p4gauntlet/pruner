@@ -37,5 +37,5 @@
 # validator analysis
 *.log
 
-#temp files created by the pruner
-example_programs/temp.p4
+# temp files created by the pruner
+*_stripped.p4

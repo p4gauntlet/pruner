@@ -3,7 +3,6 @@
 namespace P4PRUNER {
 
 IR::Node *Pruner::preorder(IR::Statement *s) {
-
     return rand() % 100 < 10 ? nullptr : s;
 }
 

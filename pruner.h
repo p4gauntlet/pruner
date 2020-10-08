@@ -5,6 +5,8 @@
 
 namespace P4PRUNER {
 
+#define INFO(x) std::cout << x << std::endl;
+
 class Pruner : public Transform {
   public:
     // IR::P4Program *program;
