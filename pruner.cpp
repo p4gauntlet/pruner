@@ -21,10 +21,10 @@ IR::Node *Pruner::preorder(IR::BlockStatement *s) {
 }
 
 bool Collector::preorder(IR::Statement *s) {
-    INFO("What about this now");
+    INFO("Test1")
     if (to_prune.size() <= 25) {
         to_prune.push_back(s->getNode());
-        INFO("DOing this yes i am");
+        INFO("Test2");
     }
 
     return true;
