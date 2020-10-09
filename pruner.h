@@ -9,16 +9,22 @@ namespace P4PRUNER {
 
 class Pruner : public Transform {
   public:
-    // IR::P4Program *program;
-    Pruner() {
+    std::vector<IR::Node *> to_prune;
+    Pruner(std::vector<IR::Node *> _to_prune) {
         setName("Pruner");
-        // program = p;
+        to_prune = _to_prune;
     }
-
     IR::Node *preorder(IR::Statement *s);
     IR::Node *preorder(IR::BlockStatement *s);
-    // void prune_p4();
-    // std::vector<IR::Node *> checked;
+};
+
+class Collector : public Inspector {
+  public:
+    Collector() { setName("Collector"); }
+
+    bool preorder(IR::Statement *s);
+    bool preorder(IR::BlockStatement *s);
+    std::vector<IR::Node *> to_prune;
 };
 
 } // namespace P4PRUNER
