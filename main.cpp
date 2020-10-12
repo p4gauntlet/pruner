@@ -52,6 +52,7 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
 
     // INFO("Doing this first");
     // Visits all the nodes and creates an index of 25 nodes at random
+
     P4PRUNER::Collector *collector = new P4PRUNER::Collector();
     auto temp = program;
     temp->apply(*collector);
@@ -59,6 +60,9 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
     // Removes all the nodes it recieves from the vector
     P4PRUNER::Pruner *pruner = new P4PRUNER::Pruner(collector->to_prune);
     temp = temp->apply(*pruner);
+
+    // Done pruning
+    program = temp;
     P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
     temp->apply(*temp_p4);
 

@@ -9,8 +9,8 @@ namespace P4PRUNER {
 
 class Pruner : public Transform {
   public:
-    std::vector<IR::Node *> to_prune;
-    Pruner(std::vector<IR::Node *> _to_prune) {
+    std::vector<const IR::Statement *> to_prune;
+    Pruner(std::vector<const IR::Statement *> _to_prune) {
         setName("Pruner");
         to_prune = _to_prune;
     }
@@ -21,10 +21,10 @@ class Pruner : public Transform {
 class Collector : public Inspector {
   public:
     Collector() { setName("Collector"); }
-
-    bool preorder(IR::Statement *s);
-    bool preorder(IR::BlockStatement *s);
-    std::vector<IR::Node *> to_prune;
+    Visitor::profile_t init_apply(const IR::Node *node) override;
+    bool preorder(const IR::Statement *s) override;
+    bool preorder(const IR::BlockStatement *s) override;
+    std::vector<const IR::Statement *> to_prune;
 };
 
 } // namespace P4PRUNER
