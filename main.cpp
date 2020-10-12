@@ -29,42 +29,44 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
                                       int required_exit_code) {
     cstring stripped_name = remove_extension(options.file);
     stripped_name += "_stripped.p4";
-    // for (int j = 0; j < 20; j++) {
 
-    //     P4PRUNER::Pruner *pruner = new P4PRUNER::Pruner();
+    int max_statements = 100;
+    for (int i = 0; i < 50; i++) {
+        auto temp = program;
+        auto temp_f = new std::ofstream(stripped_name);
+        /* code */
+        // An inspector that collects some statements at random
+        P4PRUNER::Collector *collector =
+            new P4PRUNER::Collector(max_statements);
+        temp->apply(*collector);
+        // Removes all the nodes it recieves from the vector
+        P4PRUNER::Pruner *pruner = new P4PRUNER::Pruner(collector->to_prune);
+        temp = temp->apply(*pruner);
 
-    //     auto temp = program;
-    // temp = temp->apply(*pruner);
-    // auto temp_f = new std::ofstream(stripped_name);
+        P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
+        temp->apply(*temp_p4);
 
-    // P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
-    // temp->apply(*temp_p4);
-    //     cstring new_command = "python3 ";
-    //     new_command += realpath(options.validator_script, NULL);
-    //     new_command += " -i ";
-    //     new_command += stripped_name;
-    //     int exit_code = system(new_command.c_str());
+        cstring new_command = "python3 ";
+        new_command += realpath(options.validator_script, NULL);
+        new_command += " -i ";
+        new_command += stripped_name;
+        new_command += " 2> /dev/null";
 
-    //     if (exit_code == required_exit_code) {
-    //         program = temp;
-    //     }
-    // }
-
-    // INFO("Doing this first");
-    // Visits all the nodes and creates an index of 25 nodes at random
-
-    P4PRUNER::Collector *collector = new P4PRUNER::Collector();
-    auto temp = program;
-    temp->apply(*collector);
-    auto temp_f = new std::ofstream(stripped_name);
-    // Removes all the nodes it recieves from the vector
-    P4PRUNER::Pruner *pruner = new P4PRUNER::Pruner(collector->to_prune);
-    temp = temp->apply(*pruner);
-
+        int exit_code = system(new_command.c_str());
+        if (exit_code != required_exit_code) {
+            printf("```````````Failure : %d ````````````````````````\n",
+                   max_statements);
+            if (max_statements > 1) {
+                max_statements = max_statements / 2;
+            }
+        } else {
+            program = temp;
+            printf("```````````Success : %d ````````````````````````\n",
+                   max_statements);
+        }
+    }
     // Done pruning
-    program = temp;
-    P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
-    temp->apply(*temp_p4);
+    // program = temp;
 
     return program;
 }

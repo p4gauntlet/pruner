@@ -3,16 +3,10 @@
 namespace P4PRUNER {
 
 IR::Node *Pruner::preorder(IR::Statement *s) {
-
-    // return rand() % 100 < 10 ? nullptr : s;
     for (int i = 0; i < to_prune.size(); i++) {
-
-        // This seems to be working
-        // if (to_prune.at(i)->getNode()->equiv(*s->getNode())) {
-
-        // This seems not to
-        if (to_prune.at(i) == s)
+        if (*to_prune.at(i) == *s) {
             return nullptr;
+        }
     }
     return s;
 }
@@ -28,8 +22,7 @@ Visitor::profile_t Collector::init_apply(const IR::Node *node) {
 }
 
 bool Collector::preorder(const IR::Statement *s) {
-    // if (to_prune.size() <= 25 && rand() % 100 < 10 )
-    if (to_prune.size() <= 25) {
+    if (to_prune.size() <= max_statements && (rand() % 100 < 50)) {
         to_prune.push_back(s);
     }
 

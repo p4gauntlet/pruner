@@ -20,11 +20,15 @@ class Pruner : public Transform {
 
 class Collector : public Inspector {
   public:
-    Collector() { setName("Collector"); }
+    Collector(int _max_statements) {
+        setName("Collector");
+        max_statements = _max_statements;
+    }
     Visitor::profile_t init_apply(const IR::Node *node) override;
     bool preorder(const IR::Statement *s) override;
     bool preorder(const IR::BlockStatement *s) override;
     std::vector<const IR::Statement *> to_prune;
+    int max_statements;
 };
 
 } // namespace P4PRUNER
