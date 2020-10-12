@@ -29,7 +29,7 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
                                       int required_exit_code) {
     cstring stripped_name = remove_extension(options.file);
     stripped_name += "_stripped.p4";
-
+    int same_before_pruning = 0;
     int max_statements = 100;
     for (int i = 0; i < 50; i++) {
         auto temp = program;
@@ -53,6 +53,17 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
         new_command += " 2> /dev/null";
 
         int exit_code = system(new_command.c_str());
+
+        // If we dont see any changes for 7 iterations we probabbly are done
+        if (temp == program) {
+            same_before_pruning++;
+        }
+        if (same_before_pruning >= 7) {
+            break;
+        }
+        /////
+        // if got the right exit code, then modify the original program, if not
+        // then choose a smaller bank of statements to remove now.
         if (exit_code != required_exit_code) {
             printf("```````````Failure : %d ````````````````````````\n",
                    max_statements);
