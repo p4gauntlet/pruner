@@ -1,6 +1,6 @@
 #define PRUNE_STMT_MAX 100
 #define PRUNE_ITERS 50
-
+#define NO_CHNG_ITERS 7
 #include <fstream>
 
 #include "frontends/common/parseInput.h"
@@ -35,6 +35,15 @@ collect_statements(const IR::P4Program *temp, int max) {
     return collector->to_prune;
 }
 
+const IR::P4Program *
+remove_statements(const IR::P4Program *temp,
+                  std::vector<const IR::Statement *> to_prune) {
+    // Removes all the nodes it recieves from the vector
+    P4PRUNER::Pruner *pruner = new P4PRUNER::Pruner(to_prune);
+    temp = temp->apply(*pruner);
+    return temp;
+}
+
 const IR::P4Program *prune_statements(const IR::P4Program *program,
                                       P4PRUNER::PrunerOptions options,
                                       int required_exit_code) {
@@ -49,43 +58,39 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
     new_command += " 2> /dev/null";
 
     for (int i = 0; i < PRUNE_ITERS; i++) {
+        INFO("\nTrying with  " << max_statements << " statements\n");
         auto temp = program;
         auto temp_f = new std::ofstream(stripped_name);
         std::vector<const IR::Statement *> to_prune =
             collect_statements(temp, max_statements);
-        // Removes all the nodes it recieves from the vector
-        P4PRUNER::Pruner *pruner = new P4PRUNER::Pruner(to_prune);
-        temp = temp->apply(*pruner);
+
+        temp = remove_statements(temp, to_prune);
 
         P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
         temp->apply(*temp_p4);
 
         int exit_code = system(new_command.c_str());
 
-        // If we dont see any changes for 7 iterations we probabbly are done
+        // If we dont see any changes for NO_CHNG_ITERS iterations we probabbly
+        // are done
         if (temp == program) {
             same_before_pruning++;
-        }
-        if (same_before_pruning >= 7) {
-            break;
+            if (same_before_pruning >= NO_CHNG_ITERS) {
+                break;
+            }
         }
         // if got the right exit code, then modify the original program, if not
         // then choose a smaller bank of statements to remove now.
-        INFO("Going from max statements: " << max_statements);
         if (exit_code != required_exit_code) {
+            INFO("\nFAILED\n");
             if (max_statements > 1) {
                 max_statements /= 2;
             }
-            INFO(" to max statements: "
-                 << max_statements
-                 << "\n```````````Failure````````````````````````\n");
 
         } else {
+            INFO("\nPASSED\n");
             program = temp;
             max_statements += 2;
-            INFO(" to max statements: "
-                 << max_statements
-                 << "\n```````````Success````````````````````````\n");
         }
     }
     // Done pruning
