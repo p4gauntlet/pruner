@@ -1,3 +1,6 @@
+#define PRUNE_STMT_MAX 100
+#define PRUNE_ITERS 50
+#define NO_CHNG_ITERS 7
 #include <fstream>
 
 #include "frontends/common/parseInput.h"
@@ -24,30 +27,75 @@ cstring remove_extension(cstring filename) {
     return filename.substr(0, idx);
 }
 
+const std::vector<const IR::Statement *>
+collect_statements(const IR::P4Program *temp, int max) {
+    // An inspector that collects some statements at random
+    P4PRUNER::Collector *collector = new P4PRUNER::Collector(max);
+    temp->apply(*collector);
+    return collector->to_prune;
+}
+
+const IR::P4Program *
+remove_statements(const IR::P4Program *temp,
+                  std::vector<const IR::Statement *> to_prune) {
+    // Removes all the nodes it recieves from the vector
+    P4PRUNER::Pruner *pruner = new P4PRUNER::Pruner(to_prune);
+    temp = temp->apply(*pruner);
+    return temp;
+}
+
 const IR::P4Program *prune_statements(const IR::P4Program *program,
                                       P4PRUNER::PrunerOptions options,
                                       int required_exit_code) {
     cstring stripped_name = remove_extension(options.file);
     stripped_name += "_stripped.p4";
-    for (int j = 0; j < 20; j++) {
-        P4PRUNER::Pruner *pruner = new P4PRUNER::Pruner();
+    int same_before_pruning = 0;
+    int max_statements = PRUNE_STMT_MAX;
+    cstring new_command = "python3 ";
+    new_command += realpath(options.validator_script, NULL);
+    new_command += " -i ";
+    new_command += stripped_name;
+    new_command += " 2> /dev/null";
 
+    for (int i = 0; i < PRUNE_ITERS; i++) {
+        INFO("\nTrying with  " << max_statements << " statements\n");
         auto temp = program;
-        temp = temp->apply(*pruner);
         auto temp_f = new std::ofstream(stripped_name);
+        std::vector<const IR::Statement *> to_prune =
+            collect_statements(temp, max_statements);
+
+        temp = remove_statements(temp, to_prune);
 
         P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
         temp->apply(*temp_p4);
-        cstring new_command = "python3 ";
-        new_command += realpath(options.validator_script, NULL);
-        new_command += " -i ";
-        new_command += stripped_name;
+
         int exit_code = system(new_command.c_str());
 
-        if (exit_code == required_exit_code) {
+        // If we dont see any changes for NO_CHNG_ITERS iterations we probabbly
+        // are done
+        if (temp == program) {
+            same_before_pruning++;
+            if (same_before_pruning >= NO_CHNG_ITERS) {
+                break;
+            }
+        }
+        // if got the right exit code, then modify the original program, if not
+        // then choose a smaller bank of statements to remove now.
+        if (exit_code != required_exit_code) {
+            INFO("\nFAILED\n");
+            if (max_statements > 1) {
+                max_statements /= 2;
+            }
+
+        } else {
+            INFO("\nPASSED\n");
             program = temp;
+            max_statements += 2;
         }
     }
+    // Done pruning
+    // program = temp;
+
     return program;
 }
 

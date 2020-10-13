@@ -1,4 +1,5 @@
 #include <core.p4>
+
 header ethernet_t {
     bit<48> dst_addr;
     bit<48> src_addr;
@@ -58,8 +59,6 @@ parser p(packet_in pkt, out Headers hdr) {
         transition parse_hdrs;
     }
     state parse_hdrs {
-        pkt.extract(hdr.eth_hdr);
-        pkt.extract(hdr.TJHL);
         transition accept;
     }
 }
@@ -70,22 +69,11 @@ control ingress(inout Headers h) {
     bit<128> ymGsqY = 606212367 ^ 1538303545 ^ (dOaWAx.OIfL | 18407642 - -951944168);
     bit<32> LDLifD = (!!!true ? (bit<32>)32w233620073 : 32w1904567272);
     action cnemH() {
-        h.eth_hdr.eth_type = h.eth_hdr.eth_type;
-        h.eth_hdr.eth_type = 16w60355 |-| ((bit<120>)h.eth_hdr.eth_type)[56:41];
-        h.TJHL.yRei = h.TJHL.yRei & 4w12;
-        h.eth_hdr.eth_type = 16w48562 |-| 16w49198;
         h.TJHL.OIfL = ~ymGsqY;
-        h.eth_hdr.dst_addr = 48w249317685977145;
-        dOaWAx.OIfL = 128w99776301146130543174080955240314396078;
     }
     action NkYaT(inout bit<32> TBHn, bit<64> vHgY) {
         cnemH();
-        cnemH();
-        h.eth_hdr.dst_addr = 48w76798712375064;
-        cnemH();
-        HkOGuD.Cclc = 128w319216636228130002308552948041986789110;
         bit<4> dusxjZ = 4w8 % 4w11;
-        dOaWAx.OIfL = 128w1615818680765025564770491851421306666;
     }
     table ZgQEag {
         key = {
@@ -123,9 +111,7 @@ control ingress(inout Headers h) {
         }
     }
     apply {
-        h.eth_hdr.eth_type = h.eth_hdr.eth_type;
         NkYaT(h.TJHL.OIfL[104:73], (64w5243861221667015507 |+| -64w12445722161637052267 - 64w11380158807642795511) * 64w5027264468238816501);
-        h.eth_hdr.eth_type = 16w19839;
         bit<4> FWAbfY = (20w1046872 % 20w905728 != (bit<20>)h.TJHL.OIfL ? (!false ? (!true ? 4w8 : 4w11) : 4w2) : 4w4);
         bool YgSLNz = false;
     }
@@ -135,3 +121,5 @@ parser Parser(packet_in b, out Headers hdr);
 control Ingress(inout Headers hdr);
 package top(Parser p, Ingress ig);
 top(p(), ingress()) main;
+
+
