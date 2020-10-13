@@ -1,3 +1,6 @@
+#define PRUNE_STMT_MAX 100
+#define PRUNE_ITERS 50
+
 #include <fstream>
 
 #include "frontends/common/parseInput.h"
@@ -24,33 +27,38 @@ cstring remove_extension(cstring filename) {
     return filename.substr(0, idx);
 }
 
+const std::vector<const IR::Statement *>
+collect_statements(const IR::P4Program *temp, int max) {
+    // An inspector that collects some statements at random
+    P4PRUNER::Collector *collector = new P4PRUNER::Collector(max);
+    temp->apply(*collector);
+    return collector->to_prune;
+}
+
 const IR::P4Program *prune_statements(const IR::P4Program *program,
                                       P4PRUNER::PrunerOptions options,
                                       int required_exit_code) {
     cstring stripped_name = remove_extension(options.file);
     stripped_name += "_stripped.p4";
     int same_before_pruning = 0;
-    int max_statements = 100;
-    for (int i = 0; i < 50; i++) {
+    int max_statements = PRUNE_STMT_MAX;
+    cstring new_command = "python3 ";
+    new_command += realpath(options.validator_script, NULL);
+    new_command += " -i ";
+    new_command += stripped_name;
+    new_command += " 2> /dev/null";
+
+    for (int i = 0; i < PRUNE_ITERS; i++) {
         auto temp = program;
         auto temp_f = new std::ofstream(stripped_name);
-        /* code */
-        // An inspector that collects some statements at random
-        P4PRUNER::Collector *collector =
-            new P4PRUNER::Collector(max_statements);
-        temp->apply(*collector);
+        std::vector<const IR::Statement *> to_prune =
+            collect_statements(temp, max_statements);
         // Removes all the nodes it recieves from the vector
-        P4PRUNER::Pruner *pruner = new P4PRUNER::Pruner(collector->to_prune);
+        P4PRUNER::Pruner *pruner = new P4PRUNER::Pruner(to_prune);
         temp = temp->apply(*pruner);
 
         P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
         temp->apply(*temp_p4);
-
-        cstring new_command = "python3 ";
-        new_command += realpath(options.validator_script, NULL);
-        new_command += " -i ";
-        new_command += stripped_name;
-        new_command += " 2> /dev/null";
 
         int exit_code = system(new_command.c_str());
 
@@ -61,19 +69,23 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
         if (same_before_pruning >= 7) {
             break;
         }
-        /////
         // if got the right exit code, then modify the original program, if not
         // then choose a smaller bank of statements to remove now.
+        INFO("Going from max statements: " << max_statements);
         if (exit_code != required_exit_code) {
-            printf("```````````Failure : %d ````````````````````````\n",
-                   max_statements);
             if (max_statements > 1) {
-                max_statements = max_statements / 2;
+                max_statements /= 2;
             }
+            INFO(" to max statements: "
+                 << max_statements
+                 << "\n```````````Failure````````````````````````\n");
+
         } else {
             program = temp;
-            printf("```````````Success : %d ````````````````````````\n",
-                   max_statements);
+            max_statements += 2;
+            INFO(" to max statements: "
+                 << max_statements
+                 << "\n```````````Success````````````````````````\n");
         }
     }
     // Done pruning
