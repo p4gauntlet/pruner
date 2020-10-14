@@ -15,6 +15,25 @@
 #include "pruneroptions.h"
 #include "unistd.h"
 
+#include "frontends/common/constantFolding.h"
+#include "frontends/common/resolveReferences/resolveReferences.h"
+#include "frontends/p4/createBuiltins.h"
+#include "frontends/p4/directCalls.h"
+#include "frontends/p4/simplify.h"
+#include "frontends/p4/simplifyDefUse.h"
+#include "frontends/p4/unusedDeclarations.h"
+
+#include "ir/visitor.h"
+
+int get_exit_code(cstring name, P4PRUNER::PrunerOptions options) {
+    cstring command = "python3 ";
+    command += realpath(options.validator_script, NULL);
+    command += " -i ";
+    command += name;
+    command += " 2> /dev/null";
+    return system(command.c_str());
+}
+
 cstring remove_extension(cstring filename) {
     // find the last dot
     const char *last_dot = filename.findlast('.');
@@ -44,6 +63,81 @@ remove_statements(const IR::P4Program *temp,
     return temp;
 }
 
+const IR::P4Program *apply_compiler_passes(const IR::P4Program *program,
+                                           P4PRUNER::PrunerOptions options,
+                                           int required_exit_code) {
+
+    cstring stripped_name = remove_extension(options.file);
+    stripped_name += "_stripped.p4";
+    auto temp = program;
+    auto temp_f = new std::ofstream(stripped_name);
+
+    P4::ReferenceMap refMap;
+    P4::TypeMap typeMap;
+
+    PassManager base_passes = {
+        new P4::CreateBuiltins(),
+        new P4::ResolveReferences(&refMap, true),
+        new P4::ConstantFolding(&refMap, nullptr),
+        new P4::InstantiateDirectCalls(&refMap),
+        new P4::TypeInference(&refMap, &typeMap, false),
+    };
+
+    temp = temp->apply(base_passes);
+    P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
+    temp = temp->apply(*temp_p4);
+
+    if (get_exit_code(stripped_name, options) == required_exit_code) {
+        program = temp;
+    }
+
+    P4::ReferenceMap refMap_def_use;
+    P4::TypeMap typeMap_def_use;
+    temp = program;
+    PassManager def_use_pass = {
+        new P4::SimplifyDefUse(&refMap_def_use, &typeMap_def_use)};
+
+    temp = temp->apply(def_use_pass);
+
+    // P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
+    temp = temp->apply(*temp_p4);
+
+    if (get_exit_code(stripped_name, options) == required_exit_code) {
+        program = temp;
+    }
+
+    P4::ReferenceMap refMap_unsused;
+    temp = program;
+    PassManager unused_pass = {
+        new P4::RemoveUnusedDeclarations(&refMap_unsused)};
+
+    temp = temp->apply(unused_pass);
+
+    // P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
+    temp = temp->apply(*temp_p4);
+
+    if (get_exit_code(stripped_name, options) == required_exit_code) {
+        program = temp;
+    }
+
+    P4::ReferenceMap refMap_control_flow;
+    P4::TypeMap typeMap_control_flow;
+    temp = program;
+    PassManager control_flow_pass = {new P4::SimplifyControlFlow(
+        &refMap_control_flow, &typeMap_control_flow)};
+
+    temp = temp->apply(control_flow_pass);
+
+    // P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
+    temp = temp->apply(*temp_p4);
+
+    if (get_exit_code(stripped_name, options) == required_exit_code) {
+        program = temp;
+    }
+
+    return program;
+}
+
 const IR::P4Program *prune_statements(const IR::P4Program *program,
                                       P4PRUNER::PrunerOptions options,
                                       int required_exit_code) {
@@ -51,11 +145,7 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
     stripped_name += "_stripped.p4";
     int same_before_pruning = 0;
     int max_statements = PRUNE_STMT_MAX;
-    cstring new_command = "python3 ";
-    new_command += realpath(options.validator_script, NULL);
-    new_command += " -i ";
-    new_command += stripped_name;
-    new_command += " 2> /dev/null";
+    // cstring new_command = get_exit_code();
 
     for (int i = 0; i < PRUNE_ITERS; i++) {
         INFO("\nTrying with  " << max_statements << " statements\n");
@@ -69,7 +159,7 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
         P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
         temp->apply(*temp_p4);
 
-        int exit_code = system(new_command.c_str());
+        int exit_code = get_exit_code(stripped_name, options);
 
         // If we dont see any changes for NO_CHNG_ITERS iterations we probabbly
         // are done
@@ -117,20 +207,15 @@ int main(int argc, char *const argv[]) {
     }
 
     INFO("\nChecking " << options.file);
-    // Assemble the validator command
-    cstring command = "python3 ";
-    command += realpath(options.validator_script, NULL);
-    command += " -i ";
-    command += realpath(options.file, NULL);
-    command += " 2> /dev/null";
 
     // Retrieve the exit code from the unchanged program
-    int required_exit_code = system(command.c_str());
+    int required_exit_code = get_exit_code(options.file, options);
     INFO("Got code : " << required_exit_code << " for the main file");
     program = P4::parseP4File(options);
 
     if (program != nullptr && ::errorCount() == 0) {
         program = prune_statements(program, options, required_exit_code);
+        program = apply_compiler_passes(program, options, required_exit_code);
         if (options.print_pruned) {
             P4::ToP4 *after = new P4::ToP4(&std::cout, false);
             program->apply(*after);
