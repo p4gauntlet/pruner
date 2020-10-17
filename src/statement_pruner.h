@@ -1,11 +1,12 @@
-#ifndef _P4PRUNER_H
-#define _P4PRUNER_H
+
+#ifndef _STATEMENT_PRUNER_H
+#define _STATEMENT_PRUNER_H
+#include <vector>
 
 #include "ir/ir.h"
+#include "pruner_options.h"
 
 namespace P4PRUNER {
-
-#define INFO(x) std::cout << x << std::endl;
 
 class Pruner : public Transform {
   public:
@@ -20,7 +21,7 @@ class Pruner : public Transform {
 
 class Collector : public Inspector {
   public:
-    Collector(int _max_statements) {
+    Collector(uint64_t _max_statements) {
         setName("Collector");
         max_statements = _max_statements;
     }
@@ -28,9 +29,13 @@ class Collector : public Inspector {
     bool preorder(const IR::Statement *s) override;
     bool preorder(const IR::BlockStatement *s) override;
     std::vector<const IR::Statement *> to_prune;
-    int max_statements;
+    uint64_t max_statements;
 };
+
+const IR::P4Program *prune_statements(const IR::P4Program *program,
+                                      P4PRUNER::PrunerOptions options,
+                                      int required_exit_code);
 
 } // namespace P4PRUNER
 
-#endif /* _P4PRUNER_H */
+#endif /* _STATEMENT_PRUNER_H */

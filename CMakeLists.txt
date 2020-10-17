@@ -1,12 +1,16 @@
 
 set (P4PRUNER_SRCS
-    main.cpp
-    pruneroptions.cpp
-    pruner.cpp
+    src/main.cpp
+    src/pruner_options.cpp
+    src/pruner_util.cpp
+    src/statement_pruner.cpp
+    src/compiler_pruner.cpp
     )
 set (P4PRUNER_HDRS
-     pruneroptions.h
-     pruner.h
+    src/pruner_options.h
+    src/pruner_util.h
+    src/statement_pruner.h
+    src/compiler_pruner.h
     )
 
 
