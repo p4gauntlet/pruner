@@ -4,28 +4,37 @@
 
 namespace P4PRUNER {
 
-IR::Node *ExpressionPruner::preorder(IR::Operation_Binary *s) {
-
-    IR::Node *to_remove =
-        rand() < 0.5 ? (IR::Node *)s->left : (IR::Node *)s->right;
-    visit(to_remove);
+const IR::Node *ExpressionPruner::preorder(IR::Add *s) {
+    auto decision = (double)rand() / RAND_MAX;
+    if (decision < 0.33) {
+        // return the left-hand side of the expression
+        return s->left;
+    } else if (decision < 0.66) {
+        // return the right-hand side of the expression
+        return s->right;
+    }
+    // do nothing, just return the node
+    return s;
 }
 
-IR::Node *ExpressionPruner::preorder(IR::Operation_Unary *s) {
-    return rand() < 0.5 ? (IR::Node *)s->expr : (IR::Node *)s;
+const IR::Node *ExpressionPruner::preorder(IR::Neg *s) {
+    auto decision = (double)rand() / RAND_MAX;
+    if (decision < 0.5) {
+        // return the expression without the operation
+        return s->expr;
+    } else {
+        // return the unaltered node
+        return s;
+    }
 }
 
-IR::Node *ExpressionPruner::preorder(IR::MethodCallExpression *s) {
-    return (IR::Node *)s;
-}
-
-IR::Node *ExpressionPruner::preorder(IR::StructExpression *s) {
+const IR::Node *ExpressionPruner::preorder(IR::StructExpression *s) {
 
     for (auto c : s->components) {
         visit(c);
     }
 
-    return (IR::Node *)s;
+    return s;
 }
 const IR::P4Program *remove_expressions(const IR::P4Program *temp) {
     // Removes all the nodes it recieves from the vector

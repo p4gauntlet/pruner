@@ -11,10 +11,14 @@ namespace P4PRUNER {
 class ExpressionPruner : public Transform {
   public:
     ExpressionPruner() { setName("Pruner"); }
-    IR::Node *preorder(IR::Operation_Binary *s);
-    IR::Node *preorder(IR::Operation_Unary *s);
-    IR::Node *preorder(IR::MethodCallExpression *s);
-    IR::Node *preorder(IR::StructExpression *s);
+
+    // An example of a binary operation
+    const IR::Node *preorder(IR::Add *s);
+
+    // An example of a unary operation
+    const IR::Node *preorder(IR::Neg *s);
+
+    const IR::Node *preorder(IR::StructExpression *s);
 };
 
 const IR::P4Program *prune_expressions(const IR::P4Program *program,
