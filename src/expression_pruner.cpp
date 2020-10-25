@@ -1,26 +1,46 @@
-#include "simplifier.h"
+#include "expression_pruner.h"
 #include "ir/visitor.h"
 #include "pruner_util.h"
 
 namespace P4PRUNER {
 
-IR::Node *Simplifier::preorder(IR::Operation_Binary *s) {
-    return rand() < 0.5 ? (IR::Node *)s->left : (IR::Node *)s->right;
+IR::Node *ExpressionPruner::preorder(IR::Operation_Binary *s) {
+
+    IR::Node *to_remove =
+        rand() < 0.5 ? (IR::Node *)s->left : (IR::Node *)s->right;
+    visit(to_remove);
 }
 
+IR::Node *ExpressionPruner::preorder(IR::Operation_Unary *s) {
+    return rand() < 0.5 ? (IR::Node *)s->expr : (IR::Node *)s;
+}
+
+IR::Node *ExpressionPruner::preorder(IR::MethodCallExpression *s) {
+    return (IR::Node *)s;
+}
+
+IR::Node *ExpressionPruner::preorder(IR::StructExpression *s) {
+
+    for (auto c : s->components) {
+        visit(c);
+    }
+
+    return (IR::Node *)s;
+}
 const IR::P4Program *remove_expressions(const IR::P4Program *temp) {
     // Removes all the nodes it recieves from the vector
-    P4PRUNER::Simplifier *simplifier = new P4PRUNER::Simplifier();
-    temp = temp->apply(*simplifier);
+    P4PRUNER::ExpressionPruner *expression_pruner =
+        new P4PRUNER::ExpressionPruner();
+    temp = temp->apply(*expression_pruner);
     return temp;
 }
 
-const IR::P4Program *simplify_expressions(const IR::P4Program *program,
-                                          P4PRUNER::PrunerOptions options,
-                                          int required_exit_code) {
+const IR::P4Program *prune_expressions(const IR::P4Program *program,
+                                       P4PRUNER::PrunerOptions options,
+                                       int required_exit_code) {
     int same_before_pruning = 0;
     uint64_t max_statements = PRUNE_STMT_MAX;
-    INFO("\nSimplifying expressions now \n")
+    INFO("\nPruning expressions now \n")
     for (int i = 0; i < PRUNE_ITERS; i++) {
         INFO("Trying with  " << max_statements << " statements");
         auto temp = program;
