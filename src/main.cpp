@@ -1,6 +1,8 @@
+#include <sys/stat.h>
+#include <random>
+
 #include "frontends/common/parseInput.h"
 #include "ir/ir.h"
-
 
 #include "compiler_pruner.h"
 #include "pruner_options.h"
@@ -25,10 +27,35 @@ int main(int argc, char *const argv[]) {
     }
     P4PRUNER::set_stripped_program_name(options.file);
 
+    uint64_t seed;
+    if (options.seed) {
+        std::cerr << "Using provided seed.\n";
+        try {
+            seed = boost::lexical_cast<uint64_t>(options.seed);
+        } catch (boost::bad_lexical_cast &) {
+            ::error("invalid seed %s", options.seed);
+            exit(EXIT_FAILURE);
+        }
+    } else {
+        // no seed provided, we generate our own
+        std::cerr << "Using generated seed.\n";
+        std::random_device r;
+        seed = r();
+    }
+    std::cerr << "Seed:" << seed << "\n";
+    P4PRUNER::set_seed(seed);
+
     INFO("Checking " << options.file);
 
     // Retrieve the exit code from the unchanged program
-    int required_exit_code = get_exit_code(options.file, options);
+    struct stat buffer;
+    if (stat(options.validator_script, &buffer) != 0) {
+        ::error("Validator Binary %s does not exist! Exiting.",
+                options.validator_script);
+        return EXIT_FAILURE;
+    }
+    int required_exit_code =
+        P4PRUNER::get_exit_code(options.file, options.validator_script);
     INFO("Got code : " << required_exit_code << " for the main file");
 
     // parse the input P4 program

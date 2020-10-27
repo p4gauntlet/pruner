@@ -29,7 +29,8 @@ const IR::P4Program *apply_def_use(const IR::P4Program *program,
     temp = program->apply(pass_manager);
     emit_p4_program(temp, STRIPPED_NAME);
 
-    if (get_exit_code(STRIPPED_NAME, options) == required_exit_code) {
+    if (get_exit_code(STRIPPED_NAME, options.validator_script) ==
+        required_exit_code) {
         INFO("PASSED SimplifyDefUse");
         program = temp;
     }
@@ -54,7 +55,8 @@ const IR::P4Program *apply_control_flow_simpl(const IR::P4Program *program,
     temp = program->apply(pass_manager);
     emit_p4_program(temp, STRIPPED_NAME);
 
-    if (get_exit_code(STRIPPED_NAME, options) == required_exit_code) {
+    if (get_exit_code(STRIPPED_NAME, options.validator_script) ==
+        required_exit_code) {
         INFO("PASSED SimplifyControlFlow");
         program = temp;
     }
@@ -79,7 +81,8 @@ const IR::P4Program *apply_unused_decls(const IR::P4Program *program,
     temp = program->apply(pass_manager);
     emit_p4_program(temp, STRIPPED_NAME);
 
-    if (get_exit_code(STRIPPED_NAME, options) == required_exit_code) {
+    if (get_exit_code(STRIPPED_NAME, options.validator_script) ==
+        required_exit_code) {
         INFO("PASSED RemoveUnusedDeclarations");
         program = temp;
     }

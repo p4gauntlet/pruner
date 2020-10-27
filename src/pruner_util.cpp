@@ -1,4 +1,5 @@
 #include <fstream>
+#include <boost/random.hpp>
 
 #include "frontends/p4/toP4/toP4.h"
 
@@ -6,9 +7,23 @@
 
 namespace P4PRUNER {
 
-int get_exit_code(cstring name, P4PRUNER::PrunerOptions options) {
+static boost::random::mt19937 rng;
+
+void set_seed(int64_t seed) { rng = boost::mt19937(seed); }
+
+int64_t get_rnd_int(int64_t min, int64_t max) {
+    boost::random::uniform_int_distribution<int64_t> distribution(min, max);
+    return distribution(rng);
+}
+
+big_int get_rnd_big_int(big_int min, big_int max) {
+    boost::random::uniform_int_distribution<big_int> distribution(min, max);
+    return distribution(rng);
+}
+
+int get_exit_code(cstring name, cstring validator_script) {
     cstring command = "python3 ";
-    command += realpath(options.validator_script, NULL);
+    command += realpath(validator_script, NULL);
     command += " -i ";
     command += name;
     command += " 2> /dev/null";
@@ -42,5 +57,7 @@ void set_stripped_program_name(cstring program_name) {
     STRIPPED_NAME = remove_extension(program_name);
     STRIPPED_NAME += "_stripped.p4";
 }
+
+
 
 } // namespace P4PRUNER

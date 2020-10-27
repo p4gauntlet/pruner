@@ -9,7 +9,7 @@ PrunerOptions::PrunerOptions() {
             o_file = arg;
             return true;
         },
-        "The translated Z3 file.");
+        "The pruned file.");
     registerOption(
         "--emit_p4", nullptr,
         [this](const char *) {
@@ -24,7 +24,6 @@ PrunerOptions::PrunerOptions() {
             return true;
         },
         "Path to the validation python script");
-
     registerOption(
         "--print_pruned", nullptr,
         [this](const char *) {
@@ -32,6 +31,14 @@ PrunerOptions::PrunerOptions() {
             return true;
         },
         "Whether to print out the pruned file to stdout");
+    registerOption(
+        "--seed", "seed",
+        [this](const char *arg) {
+            seed = arg;
+            return true;
+        },
+        "The seed for the random program. If no seed is provided we generate "
+        "our own.");
 }
 
 } // namespace P4PRUNER
