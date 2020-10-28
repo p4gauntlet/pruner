@@ -4,7 +4,7 @@
 
 namespace P4PRUNER {
 
-const IR::Node *ExpressionPruner::preorder(IR::Add *s) {
+const IR::Node *pick_side_binary(const IR::Operation_Binary *s) {
     auto decision = (double)rand() / RAND_MAX;
     if (decision < 0.33) {
         // return the left-hand side of the expression
@@ -17,18 +17,85 @@ const IR::Node *ExpressionPruner::preorder(IR::Add *s) {
     return s;
 }
 
-const IR::Node *ExpressionPruner::preorder(IR::Neg *s) {
+const IR::Node *pick_side_unary(const IR::Operation_Unary *s) {
     auto decision = (double)rand() / RAND_MAX;
     if (decision < 0.5) {
-        // return the expression without the operation
+        // return the expression inside the operation
         return s->expr;
-    } else {
-        // return the unaltered node
+    } else
+        // return the unchanged operation
         return s;
-    }
 }
 
-const IR::Node *ExpressionPruner::preorder(IR::StructExpression *s) {
+const IR::Node *pick_side_shift_left(const IR::Operation_Binary *s) {
+    auto decision = (double)rand() / RAND_MAX;
+    if (decision < 0.5) {
+        // return the left side of the shift
+        return s->left;
+    } else
+        // return the unchanged operation
+        return s;
+}
+
+const IR::Node *ExpressionPruner::preorder(const IR::Add *s) {
+    return pick_side_binary(s);
+}
+const IR::Node *ExpressionPruner::preorder(const IR::AddSat *s) {
+    return pick_side_binary(s);
+}
+
+const IR::Node *ExpressionPruner::preorder(const IR::Sub *s) {
+    return pick_side_binary(s);
+}
+
+const IR::Node *ExpressionPruner::preorder(const IR::SubSat *s) {
+    return pick_side_binary(s);
+}
+
+const IR::Node *ExpressionPruner::preorder(const IR::Mul *s) {
+    return pick_side_binary(s);
+}
+
+const IR::Node *ExpressionPruner::preorder(const IR::Div *s) {
+    return pick_side_binary(s);
+}
+
+const IR::Node *ExpressionPruner::preorder(const IR::BAnd *s) {
+    return pick_side_binary(s);
+}
+
+const IR::Node *ExpressionPruner::preorder(const IR::BOr *s) {
+    return pick_side_binary(s);
+}
+const IR::Node *ExpressionPruner::preorder(const IR::BXor *s) {
+    return pick_side_binary(s);
+}
+
+// Unary operations
+
+const IR::Node *ExpressionPruner::preorder(const IR::Neg *s) {
+    return pick_side_unary(s);
+}
+
+const IR::Node *ExpressionPruner::preorder(const IR::Cmpl *s) {
+    return pick_side_unary(s);
+}
+
+// Shifts
+
+const IR::Node *preorder(const IR::Mod *expr) {
+    return pick_side_shift_left(expr);
+}
+
+const IR::Node *preorder(const IR::Shl *expr) {
+    return pick_side_shift_left(expr);
+}
+
+const IR::Node *preorder(const IR::Shr *expr) {
+    return pick_side_shift_left(expr);
+}
+
+const IR::Node *ExpressionPruner::preorder(const IR::StructExpression *s) {
 
     for (auto c : s->components) {
         visit(c);
