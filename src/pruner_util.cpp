@@ -1,8 +1,9 @@
 #include <fstream>
+
 #include <boost/random.hpp>
 
-#include "frontends/p4/toP4/toP4.h"
 
+#include "frontends/p4/toP4/toP4.h"
 #include "pruner_util.h"
 
 namespace P4PRUNER {
@@ -18,6 +19,11 @@ int64_t get_rnd_int(int64_t min, int64_t max) {
 
 big_int get_rnd_big_int(big_int min, big_int max) {
     boost::random::uniform_int_distribution<big_int> distribution(min, max);
+    return distribution(rng);
+}
+
+double get_rnd_pct() {
+    boost::random::uniform_real_distribution<double> distribution(0.0, 1.0);
     return distribution(rng);
 }
 
@@ -57,7 +63,5 @@ void set_stripped_program_name(cstring program_name) {
     STRIPPED_NAME = remove_extension(program_name);
     STRIPPED_NAME += "_stripped.p4";
 }
-
-
 
 } // namespace P4PRUNER

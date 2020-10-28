@@ -31,13 +31,12 @@ Visitor::profile_t Collector::init_apply(const IR::Node *node) {
 }
 
 bool Collector::preorder(const IR::Statement *s) {
-    if (to_prune.size() <= max_statements && (get_rnd_int(0, 100) < 50)) {
+    if (to_prune.size() <= max_statements && (get_rnd_pct() < 0.5)) {
         to_prune.push_back(s);
     }
 
     return true;
 }
-
 
 bool Collector::preorder(const IR::BlockStatement *s) {
     for (auto c : s->components) {

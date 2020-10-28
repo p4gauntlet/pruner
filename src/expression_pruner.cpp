@@ -5,7 +5,7 @@
 namespace P4PRUNER {
 
 const IR::Node *pick_side_binary(IR::Operation_Binary *s) {
-    auto decision = (double)rand() / RAND_MAX;
+    auto decision = get_rnd_pct();
     if (decision < 0.33) {
         // return the left-hand side of the expression
         return s->left;
@@ -18,7 +18,7 @@ const IR::Node *pick_side_binary(IR::Operation_Binary *s) {
 }
 
 const IR::Node *pick_side_unary(IR::Operation_Unary *s) {
-    auto decision = (double)rand() / RAND_MAX;
+    auto decision = get_rnd_pct();
     if (decision < 0.5) {
         // return the expression inside the operation
         return s->expr;
@@ -27,7 +27,7 @@ const IR::Node *pick_side_unary(IR::Operation_Unary *s) {
 }
 
 const IR::Node *pick_side_shift_left(IR::Operation_Binary *s) {
-    auto decision = (double)rand() / RAND_MAX;
+    auto decision = get_rnd_pct();
     if (decision < 0.5) {
         // return the left side of the shift
         return s->left;
@@ -112,7 +112,7 @@ const IR::P4Program *prune_expressions(const IR::P4Program *program,
         auto temp = program;
         temp = remove_expressions(temp);
         emit_p4_program(temp, STRIPPED_NAME);
-        int exit_code = get_exit_code(STRIPPED_NAME, options);
+        int exit_code = get_exit_code(STRIPPED_NAME, options.validator_script);
 
         // If we don't see any changes for NO_CHNG_ITERS iterations we probably
         // are done

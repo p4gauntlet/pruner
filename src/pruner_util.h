@@ -18,6 +18,7 @@ namespace P4PRUNER {
 void set_seed(int64_t seed);
 int64_t get_rnd_int(int64_t min, int64_t max);
 big_int get_rnd_big_int(big_int min, big_int max);
+double get_rnd_pct();
 
 int get_exit_code(cstring name, cstring validator_script);
 cstring remove_extension(cstring filename);
