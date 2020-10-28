@@ -9,19 +9,20 @@
 namespace P4PRUNER {
 
 class Pruner : public Transform {
-  public:
+ public:
     std::vector<const IR::Statement *> to_prune;
-    Pruner(std::vector<const IR::Statement *> _to_prune) {
+    explicit Pruner(std::vector<const IR::Statement *> _to_prune) {
         setName("Pruner");
         to_prune = _to_prune;
     }
-    IR::Node *preorder(IR::Statement *s);
-    IR::Node *preorder(IR::BlockStatement *s);
+    const IR::Node *preorder(IR::Statement *s);
+    const IR::Node *preorder(IR::ReturnStatement *s);
+    const IR::Node *preorder(IR::BlockStatement *s);
 };
 
 class Collector : public Inspector {
-  public:
-    Collector(uint64_t _max_statements) {
+ public:
+    explicit Collector(uint64_t _max_statements) {
         setName("Collector");
         max_statements = _max_statements;
     }

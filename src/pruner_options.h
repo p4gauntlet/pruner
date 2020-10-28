@@ -9,7 +9,7 @@
 namespace P4PRUNER {
 
 class PrunerOptions : public CompilerOptions {
-  public:
+ public:
     PrunerOptions();
     // output file
     cstring o_file = nullptr;
@@ -18,6 +18,7 @@ class PrunerOptions : public CompilerOptions {
     bool do_rnd_prune = false;
     cstring validator_script = nullptr;
     bool print_pruned = false;
+    cstring seed;
 };
 
 using P4PrunerContext = P4CContextWithOptions<PrunerOptions>;
