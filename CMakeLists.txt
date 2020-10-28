@@ -5,12 +5,15 @@ set (P4PRUNER_SRCS
     src/pruner_util.cpp
     src/statement_pruner.cpp
     src/compiler_pruner.cpp
+    src/expression_pruner.cpp
+
     )
 set (P4PRUNER_HDRS
     src/pruner_options.h
     src/pruner_util.h
     src/statement_pruner.h
     src/compiler_pruner.h
+    src/expression_pruner.h
     )
 
 

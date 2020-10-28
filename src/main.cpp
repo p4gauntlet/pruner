@@ -5,6 +5,7 @@
 #include "ir/ir.h"
 
 #include "compiler_pruner.h"
+#include "expression_pruner.h"
 #include "pruner_options.h"
 #include "pruner_util.h"
 #include "statement_pruner.h"
@@ -64,8 +65,12 @@ int main(int argc, char *const argv[]) {
     if (program != nullptr && ::errorCount() == 0) {
         program =
             P4PRUNER::prune_statements(program, options, required_exit_code);
-        program = P4PRUNER::apply_compiler_passes(program, options,
-                                                  required_exit_code);
+        program =
+            P4PRUNER::prune_expressions(program, options, required_exit_code);
+
+        // disabling compiler passes for now as some work is needed here
+        // program = P4PRUNER::apply_compiler_passes(program, options,
+        //   required_exit_code);
         if (options.print_pruned) {
             P4PRUNER::print_p4_program(program);
         }
