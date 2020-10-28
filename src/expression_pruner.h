@@ -9,7 +9,7 @@
 namespace P4PRUNER {
 
 class ExpressionPruner : public Transform {
-  public:
+ public:
     ExpressionPruner() { setName("Pruner"); }
 
     const IR::Node *preorder(const IR::Neg *expr);
@@ -65,6 +65,6 @@ const IR::P4Program *prune_expressions(const IR::P4Program *program,
 
 const IR::Node *pick_side_binary(const IR::Operation_Binary *s);
 
-} // namespace P4PRUNER
+}  // namespace P4PRUNER
 
 #endif /* _EXPRESSION_PRUNER_H */

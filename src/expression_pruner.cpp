@@ -22,9 +22,10 @@ const IR::Node *pick_side_unary(const IR::Operation_Unary *s) {
     if (decision < 0.5) {
         // return the expression inside the operation
         return s->expr;
-    } else
+    } else {
         // return the unchanged operation
         return s;
+    }
 }
 
 const IR::Node *pick_side_shift_left(const IR::Operation_Binary *s) {
@@ -32,9 +33,10 @@ const IR::Node *pick_side_shift_left(const IR::Operation_Binary *s) {
     if (decision < 0.5) {
         // return the left side of the shift
         return s->left;
-    } else
+    } else {
         // return the unchanged operation
         return s;
+    }
 }
 
 const IR::Node *ExpressionPruner::preorder(const IR::Add *s) {
@@ -96,7 +98,6 @@ const IR::Node *preorder(const IR::Shr *expr) {
 }
 
 const IR::Node *ExpressionPruner::preorder(const IR::StructExpression *s) {
-
     for (auto c : s->components) {
         visit(c);
     }
@@ -150,4 +151,4 @@ const IR::P4Program *prune_expressions(const IR::P4Program *program,
     return program;
 }
 
-} // namespace P4PRUNER
+}  // namespace P4PRUNER

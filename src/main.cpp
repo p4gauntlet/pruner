@@ -35,8 +35,8 @@ int main(int argc, char *const argv[]) {
     program = P4::parseP4File(options);
 
     if (program != nullptr && ::errorCount() == 0) {
-        // program =
-        //     P4PRUNER::prune_statements(program, options, required_exit_code);
+        program =
+            P4PRUNER::prune_statements(program, options, required_exit_code);
         program =
             P4PRUNER::prune_expressions(program, options, required_exit_code);
 
