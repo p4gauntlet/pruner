@@ -28,6 +28,7 @@ double get_rnd_pct() {
 }
 
 int get_exit_code(cstring name, cstring validator_script) {
+    INFO("Checking exit code...");
     cstring command = "python3 ";
     command += realpath(validator_script, NULL);
     command += " -i ";

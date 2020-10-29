@@ -70,8 +70,8 @@ int main(int argc, char *const argv[]) {
             P4PRUNER::prune_expressions(program, options, required_exit_code);
 
         // disabling compiler passes for now as some work is needed here
-        // program = P4PRUNER::apply_compiler_passes(program, options,
-        //   required_exit_code);
+        program = P4PRUNER::apply_compiler_passes(program, options,
+                                                  required_exit_code);
         if (options.print_pruned) {
             P4PRUNER::print_p4_program(program);
         }
