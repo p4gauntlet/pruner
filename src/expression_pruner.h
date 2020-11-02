@@ -34,14 +34,6 @@ class ExpressionPruner : public Transform {
 
     // To be Implemented -----------
 
-    /* these need to result in a boolean if we prune them */
-    // const IR::Node *postorder(const IR::LAnd *expr);%
-    // const IR::Node *postorder(const IR::Neq *expr);
-    // const IR::Node *postorder(const IR::Lss *expr);
-    // const IR::Node *postorder(const IR::Leq *expr);
-    // const IR::Node *postorder(const IR::Grt *expr);
-    // const IR::Node *postorder(const IR::Geq *expr);
-
     // const IR::Node *postorder(const IR::Mask *m);
     // const IR::Node *postorder(const IR::Range *r);
     // const IR::Node *postorder(const IR::Cast *c);

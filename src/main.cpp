@@ -5,6 +5,7 @@
 #include "frontends/common/parseInput.h"
 #include "ir/ir.h"
 
+#include "boolean_pass.h"
 #include "compiler_pruner.h"
 #include "expression_pruner.h"
 #include "pruner_options.h"
@@ -68,6 +69,9 @@ int main(int argc, char *const argv[]) {
             P4PRUNER::prune_statements(program, options, required_exit_code);
         program =
             P4PRUNER::prune_expressions(program, options, required_exit_code);
+
+        program = P4PRUNER::prune_bool_expressions(program, options,
+                                                   required_exit_code);
 
         // disabling compiler passes for now as some work is needed here
         program = P4PRUNER::apply_compiler_passes(program, options,

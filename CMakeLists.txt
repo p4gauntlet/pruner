@@ -6,7 +6,7 @@ set (P4PRUNER_SRCS
     src/statement_pruner.cpp
     src/compiler_pruner.cpp
     src/expression_pruner.cpp
-
+    src/boolean_pass.cpp
     )
 set (P4PRUNER_HDRS
     src/pruner_options.h
@@ -14,6 +14,7 @@ set (P4PRUNER_HDRS
     src/statement_pruner.h
     src/compiler_pruner.h
     src/expression_pruner.h
+    src/boolean_pass.h
     )
 
 
