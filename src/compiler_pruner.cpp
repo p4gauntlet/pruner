@@ -28,10 +28,15 @@ const IR::P4Program *apply_def_use(const IR::P4Program *program,
     INFO("Applying SimplifyDefUse...");
     temp = program->apply(pass_manager);
     emit_p4_program(temp, STRIPPED_NAME);
+    if (has_same_checksum(temp, program)) {
+        INFO("Skipped RemoveAllUnusedDeclarations");
+        return temp;
+    }
 
     if (get_exit_code(STRIPPED_NAME, options.validator_script) ==
         required_exit_code) {
         INFO("PASSED SimplifyDefUse");
+        INFO("\nReduced by " << measure_pct(program, temp) << " %\n")
         program = temp;
     }
     return program;
@@ -53,10 +58,15 @@ const IR::P4Program *apply_control_flow_simpl(const IR::P4Program *program,
     INFO("Applying SimplifyControlFlow...");
     temp = program->apply(pass_manager);
     emit_p4_program(temp, STRIPPED_NAME);
+    if (has_same_checksum(temp, program)) {
+        INFO("Skipped RemoveAllUnusedDeclarations");
+        return temp;
+    }
 
     if (get_exit_code(STRIPPED_NAME, options.validator_script) ==
         required_exit_code) {
         INFO("PASSED SimplifyControlFlow");
+        INFO("\nReduced by " << measure_pct(program, temp) << " %\n")
         program = temp;
     }
     return program;
@@ -80,10 +90,14 @@ const IR::P4Program *apply_unused_decls(const IR::P4Program *program,
     INFO("Applying RemoveAllUnusedDeclarations...");
     temp = program->apply(pass_manager);
     emit_p4_program(temp, STRIPPED_NAME);
-
+    if (has_same_checksum(temp, program)) {
+        INFO("Skipped RemoveAllUnusedDeclarations");
+        return temp;
+    }
     if (get_exit_code(STRIPPED_NAME, options.validator_script) ==
         required_exit_code) {
         INFO("PASSED RemoveAllUnusedDeclarations");
+        INFO("\nReduced by " << measure_pct(program, temp) << " %\n")
         program = temp;
     } else {
         INFO("FAILED RemoveAllUnusedDeclarations");

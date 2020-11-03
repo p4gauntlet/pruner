@@ -63,6 +63,7 @@ int main(int argc, char *const argv[]) {
 
     // parse the input P4 program
     program = P4::parseP4File(options);
+    auto original = program;
 
     if (program != nullptr && ::errorCount() == 0) {
         program =
@@ -83,6 +84,8 @@ int main(int argc, char *const argv[]) {
         if (options.emit_p4) {
             P4PRUNER::emit_p4_program(program, STRIPPED_NAME);
         }
+        INFO("Total reduction percentage = "
+             << P4PRUNER::measure_pct(original, program) << " %");
     }
 
     return ::errorCount() > 0;

@@ -1,7 +1,7 @@
 #include <fstream>
+#include <memory>
 
 #include <boost/random.hpp>
-
 
 #include "frontends/p4/toP4/toP4.h"
 #include "pruner_util.h"
@@ -58,6 +58,56 @@ void emit_p4_program(const IR::P4Program *program, cstring prog_name) {
 void print_p4_program(const IR::P4Program *program) {
     P4::ToP4 *print_p4 = new P4::ToP4(&std::cout, false);
     program->apply(*print_p4);
+}
+
+cstring get_checksum(cstring name) {
+    std::array<char, 128> buffer;
+    cstring result = "";
+    cstring command = "sha256sum " + name + " | cut -d \" \" -f1 ";
+    std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(command.c_str(), "r"),
+                                                  pclose);
+
+    while (fgets(buffer.data(), buffer.size(), pipe.get()) != nullptr) {
+        result += buffer.data();
+    }
+    return result;
+}
+
+bool has_same_checksum(const IR::P4Program *prog_before,
+                       const IR::P4Program *prog_after) {
+    cstring without_extension = remove_extension(STRIPPED_NAME);
+    auto before_file =
+        new std::ofstream(without_extension + "_checksum_before.p4");
+    auto after_file =
+        new std::ofstream(without_extension + "_checksum_after.p4");
+
+    P4::ToP4 *before = new P4::ToP4(before_file, false);
+    prog_before->apply(*before);
+
+    P4::ToP4 *after = new P4::ToP4(after_file, false);
+    prog_after->apply(*after);
+
+    return !(bool)strcmp(
+        get_checksum(without_extension + "_checksum_before.p4"),
+        get_checksum(without_extension + "_checksum_after.p4"));
+}
+
+double measure_pct(const IR::P4Program *prog_before,
+                   const IR::P4Program *prog_after) {
+    cstring without_extension = remove_extension(STRIPPED_NAME);
+    auto before_file = new std::ofstream(without_extension + "_before.p4");
+    auto after_file = new std::ofstream(without_extension + "_after.p4");
+    auto before_initial_pos = before_file->tellp();
+    P4::ToP4 *before = new P4::ToP4(before_file, false);
+    prog_before->apply(*before);
+    auto before_len = before_file->tellp() - before_initial_pos;
+
+    auto after_initial_pos = after_file->tellp();
+    P4::ToP4 *after = new P4::ToP4(after_file, false);
+    prog_after->apply(*after);
+    auto after_len = after_file->tellp() - after_initial_pos;
+
+    return (before_len - after_len) * (100.0 / before_len);
 }
 
 void set_stripped_program_name(cstring program_name) {

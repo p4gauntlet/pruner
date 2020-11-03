@@ -54,27 +54,27 @@ const IR::P4Program *prune_bool_expressions(const IR::P4Program *program,
         auto temp = program;
         temp = remove_bool_expressions(temp);
         emit_p4_program(temp, STRIPPED_NAME);
-        int exit_code = get_exit_code(STRIPPED_NAME, options.validator_script);
-
-        // If we don't see any changes for NO_CHNG_ITERS iterations we probably
-        // are done
-        if (temp == program) {
+        if (has_same_checksum(temp, program)) {
             same_before_pruning++;
             if (same_before_pruning >= NO_CHNG_ITERS) {
                 break;
             }
+            continue;
         }
+        int exit_code = get_exit_code(STRIPPED_NAME, options.validator_script);
+
         // if got the right exit code, then modify the original program, if not
         // then choose a smaller bank of statements to remove now.
         if (exit_code != required_exit_code) {
             INFO("FAILED");
         } else {
             INFO("PASSED");
+            INFO("\nReduced by " << measure_pct(program, temp) << " %\n");
             program = temp;
         }
     }
     // Done pruning
     return program;
-}
+} // namespace P4PRUNER
 
 } // namespace P4PRUNER
