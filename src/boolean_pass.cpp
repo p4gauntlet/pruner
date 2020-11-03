@@ -10,22 +10,30 @@ const IR::Node *rand_bool_literal() {
     return new IR::BoolLiteral(decision < 0.5);
 }
 
-const IR::Node *BoolExpressionPruner::postorder(IR::LAnd *expr) {
+const IR::Node *BoolExpressionPruner::postorder(IR::LAnd *) {
     return rand_bool_literal();
 }
-const IR::Node *BoolExpressionPruner::postorder(IR::Neq *expr) {
+const IR::Node *BoolExpressionPruner::postorder(IR::Neq *) {
     return rand_bool_literal();
 }
-const IR::Node *BoolExpressionPruner::postorder(IR::Lss *expr) {
+const IR::Node *BoolExpressionPruner::postorder(IR::Lss *) {
     return rand_bool_literal();
 }
-const IR::Node *BoolExpressionPruner::postorder(IR::Leq *expr) {
+const IR::Node *BoolExpressionPruner::postorder(IR::Leq *) {
     return rand_bool_literal();
 }
-const IR::Node *BoolExpressionPruner::postorder(IR::Grt *expr) {
+const IR::Node *BoolExpressionPruner::postorder(IR::Grt *) {
     return rand_bool_literal();
 }
-const IR::Node *BoolExpressionPruner::postorder(IR::Geq *expr) {
+const IR::Node *BoolExpressionPruner::postorder(IR::Geq *) {
+    return rand_bool_literal();
+}
+
+const IR::Node *BoolExpressionPruner::postorder(IR::LOr *) {
+    return rand_bool_literal();
+}
+
+const IR::Node *BoolExpressionPruner::postorder(IR::Equ *) {
     return rand_bool_literal();
 }
 

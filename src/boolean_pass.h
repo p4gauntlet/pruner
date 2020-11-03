@@ -12,12 +12,14 @@ class BoolExpressionPruner : public Transform {
  public:
     BoolExpressionPruner() { visitDagOnce = true; }
 
-    const IR::Node *postorder(IR::LAnd *expr);
-    const IR::Node *postorder(IR::Neq *expr);
-    const IR::Node *postorder(IR::Lss *expr);
-    const IR::Node *postorder(IR::Leq *expr);
-    const IR::Node *postorder(IR::Grt *expr);
-    const IR::Node *postorder(IR::Geq *expr);
+    const IR::Node *postorder(IR::LAnd *);
+    const IR::Node *postorder(IR::Neq *);
+    const IR::Node *postorder(IR::Lss *);
+    const IR::Node *postorder(IR::Leq *);
+    const IR::Node *postorder(IR::Grt *);
+    const IR::Node *postorder(IR::Geq *);
+    const IR::Node *postorder(IR::LOr *);
+    const IR::Node *postorder(IR::Equ *);
 };
 
 const IR::P4Program *prune_bool_expressions(const IR::P4Program *program,
