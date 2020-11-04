@@ -76,7 +76,7 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
             collect_statements(temp, max_statements);
         temp = remove_statements(temp, to_prune);
         emit_p4_program(temp, STRIPPED_NAME);
-        if (has_same_checksum(temp, program)) {
+        if (compare_files(temp, program)) {
             same_before_pruning++;
             if (same_before_pruning >= NO_CHNG_ITERS) {
                 break;

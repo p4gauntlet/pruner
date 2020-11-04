@@ -28,7 +28,7 @@ const IR::P4Program *apply_def_use(const IR::P4Program *program,
     INFO("Applying SimplifyDefUse...");
     temp = program->apply(pass_manager);
     emit_p4_program(temp, STRIPPED_NAME);
-    if (has_same_checksum(temp, program)) {
+    if (compare_files(temp, program)) {
         INFO("Skipped RemoveAllUnusedDeclarations");
         return temp;
     }
@@ -58,7 +58,7 @@ const IR::P4Program *apply_control_flow_simpl(const IR::P4Program *program,
     INFO("Applying SimplifyControlFlow...");
     temp = program->apply(pass_manager);
     emit_p4_program(temp, STRIPPED_NAME);
-    if (has_same_checksum(temp, program)) {
+    if (compare_files(temp, program)) {
         INFO("Skipped RemoveAllUnusedDeclarations");
         return temp;
     }
@@ -90,7 +90,7 @@ const IR::P4Program *apply_unused_decls(const IR::P4Program *program,
     INFO("Applying RemoveAllUnusedDeclarations...");
     temp = program->apply(pass_manager);
     emit_p4_program(temp, STRIPPED_NAME);
-    if (has_same_checksum(temp, program)) {
+    if (compare_files(temp, program)) {
         INFO("Skipped RemoveAllUnusedDeclarations");
         return temp;
     }

@@ -112,7 +112,7 @@ const IR::P4Program *prune_expressions(const IR::P4Program *program,
         auto temp = program;
         temp = remove_expressions(temp);
         emit_p4_program(temp, STRIPPED_NAME);
-        if (has_same_checksum(temp, program)) {
+        if (compare_files(temp, program)) {
             same_before_pruning++;
             if (same_before_pruning >= NO_CHNG_ITERS) {
                 break;

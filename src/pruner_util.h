@@ -26,8 +26,8 @@ void emit_p4_program(const IR::P4Program *program, cstring prog_name);
 void print_p4_program(const IR::P4Program *program);
 void set_stripped_program_name(cstring program_name);
 
-bool has_same_checksum(const IR::P4Program *prog_before,
-                       const IR::P4Program *prog_after);
+bool compare_files(const IR::P4Program *prog_before,
+                   const IR::P4Program *prog_after);
 
 double measure_pct(const IR::P4Program *prog_before,
                    const IR::P4Program *prog_after);
