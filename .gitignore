@@ -39,6 +39,5 @@
 
 # temp files created by the pruner
 *_stripped.p4
-
 # Example programs just for testing the pruner
 example_programs/random/

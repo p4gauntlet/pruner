@@ -1,7 +1,7 @@
 #include <fstream>
+#include <memory>
 
 #include <boost/random.hpp>
-
 
 #include "frontends/p4/toP4/toP4.h"
 #include "pruner_util.h"
@@ -58,6 +58,35 @@ void emit_p4_program(const IR::P4Program *program, cstring prog_name) {
 void print_p4_program(const IR::P4Program *program) {
     P4::ToP4 *print_p4 = new P4::ToP4(&std::cout, false);
     program->apply(*print_p4);
+}
+
+bool compare_files(const IR::P4Program *prog_before,
+                   const IR::P4Program *prog_after) {
+    auto before_stream = new std::stringstream;
+    auto after_stream = new std::stringstream;
+
+    P4::ToP4 *before = new P4::ToP4(before_stream, false);
+    prog_before->apply(*before);
+
+    P4::ToP4 *after = new P4::ToP4(after_stream, false);
+    prog_after->apply(*after);
+
+    return before_stream->str() == after_stream->str();
+}
+
+double measure_pct(const IR::P4Program *prog_before,
+                   const IR::P4Program *prog_after) {
+    auto before_stream = new std::stringstream;
+    auto after_stream = new std::stringstream;
+    P4::ToP4 *before = new P4::ToP4(before_stream, false);
+    prog_before->apply(*before);
+    auto before_len = before_stream->str().length();
+
+    P4::ToP4 *after = new P4::ToP4(after_stream, false);
+    prog_after->apply(*after);
+    auto after_len = after_stream->str().length();
+
+    return (before_len - after_len) * (100.0 / before_len);
 }
 
 void set_stripped_program_name(cstring program_name) {
