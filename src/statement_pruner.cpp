@@ -77,6 +77,7 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
         temp = remove_statements(temp, to_prune);
         emit_p4_program(temp, STRIPPED_NAME);
         if (compare_files(temp, program)) {
+            INFO("Skipping due to no change");
             same_before_pruning++;
             if (same_before_pruning >= NO_CHNG_ITERS) {
                 break;
@@ -94,9 +95,7 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
             }
 
         } else {
-            INFO("PASSED");
-
-            INFO("\nReduced by " << measure_pct(program, temp) << " %\n");
+            INFO("PASSED: Reduced by " << measure_pct(program, temp) << " %");
 
             program = temp;
             max_statements += 2;

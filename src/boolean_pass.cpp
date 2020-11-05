@@ -55,6 +55,7 @@ const IR::P4Program *prune_bool_expressions(const IR::P4Program *program,
         temp = remove_bool_expressions(temp);
         emit_p4_program(temp, STRIPPED_NAME);
         if (compare_files(temp, program)) {
+            INFO("Skipping due to no change");
             same_before_pruning++;
             if (same_before_pruning >= NO_CHNG_ITERS) {
                 break;
@@ -68,8 +69,7 @@ const IR::P4Program *prune_bool_expressions(const IR::P4Program *program,
         if (exit_code != required_exit_code) {
             INFO("FAILED");
         } else {
-            INFO("PASSED");
-            INFO("\nReduced by " << measure_pct(program, temp) << " %\n");
+            INFO("PASSED: Reduced by " << measure_pct(program, temp) << " %");
             program = temp;
         }
     }
