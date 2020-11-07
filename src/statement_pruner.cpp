@@ -1,6 +1,8 @@
-#include "statement_pruner.h"
+#include <algorithm>    // std::min
+
 #include "ir/visitor.h"
 #include "pruner_util.h"
+#include "statement_pruner.h"
 
 namespace P4PRUNER {
 
@@ -65,44 +67,32 @@ remove_statements(const IR::P4Program *temp,
 
 const IR::P4Program *prune_statements(const IR::P4Program *program,
                                       P4PRUNER::PrunerOptions options,
-                                      int required_exit_code) {
+                                      int req_exit_code) {
     int same_before_pruning = 0;
-    uint64_t max_statements = PRUNE_STMT_MAX;
-
+    int result;
+    int max_statements = PRUNE_STMT_MAX;
+    INFO("\nPruning statements");
     for (int i = 0; i < PRUNE_ITERS; i++) {
         INFO("Trying with  " << max_statements << " statements");
         auto temp = program;
         std::vector<const IR::Statement *> to_prune =
             collect_statements(temp, max_statements);
         temp = remove_statements(temp, to_prune);
-        emit_p4_program(temp, STRIPPED_NAME);
-        if (compare_files(temp, program)) {
-            INFO("Skipping due to no change");
+        result = check_pruned_program(&program, temp, options, req_exit_code);
+        if (result != EXIT_SUCCESS) {
             same_before_pruning++;
-            if (same_before_pruning >= NO_CHNG_ITERS) {
-                break;
-            }
-            continue;
-        }
-        int exit_code = get_exit_code(STRIPPED_NAME, options.validator_script);
-
-        // if got the right exit code, then modify the original program, if not
-        // then choose a smaller bank of statements to remove now.
-        if (exit_code != required_exit_code) {
-            INFO("FAILED");
-            if (max_statements > 1) {
-                max_statements /= 2;
-            }
-
+            max_statements = std::max(1, max_statements / 2);
         } else {
-            INFO("PASSED: Reduced by " << measure_pct(program, temp) << " %");
-
-            program = temp;
+            // successful run, reset short-circuit
+            same_before_pruning = 0;
             max_statements += 2;
+        }
+        if (same_before_pruning >= NO_CHNG_ITERS) {
+            break;
         }
     }
     // Done pruning
     return program;
-} // namespace P4PRUNER
+}
 
 } // namespace P4PRUNER

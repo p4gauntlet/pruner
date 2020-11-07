@@ -31,6 +31,9 @@ bool compare_files(const IR::P4Program *prog_before,
 
 double measure_pct(const IR::P4Program *prog_before,
                    const IR::P4Program *prog_after);
+int check_pruned_program(const IR::P4Program **orig_program,
+                         const IR::P4Program *pruned_program,
+                         P4PRUNER::PrunerOptions options, int req_exit_code);
 } // namespace P4PRUNER
 
 #endif /* _PRUNER_UTIL_H_ */

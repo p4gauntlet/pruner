@@ -105,31 +105,22 @@ const IR::P4Program *remove_expressions(const IR::P4Program *temp) {
 
 const IR::P4Program *prune_expressions(const IR::P4Program *program,
                                        P4PRUNER::PrunerOptions options,
-                                       int required_exit_code) {
+                                       int req_exit_code) {
     int same_before_pruning = 0;
-    INFO("\nPruning expressions now \n");
+    int result;
+    INFO("\nPruning expressions");
     for (int i = 0; i < PRUNE_ITERS; i++) {
         auto temp = program;
-        temp = remove_expressions(temp);
-        emit_p4_program(temp, STRIPPED_NAME);
-        if (compare_files(temp, program)) {
-            INFO("Skipping due to no change");
+        temp = remove_expressions(program);
+        result = check_pruned_program(&program, temp, options, req_exit_code);
+        if (result != EXIT_SUCCESS) {
             same_before_pruning++;
-            if (same_before_pruning >= NO_CHNG_ITERS) {
-                break;
-            }
-
-            continue;
-        }
-        int exit_code = get_exit_code(STRIPPED_NAME, options.validator_script);
-
-        // if got the right exit code, then modify the original program, if not
-        // then choose a smaller bank of statements to remove now.
-        if (exit_code != required_exit_code) {
-            INFO("FAILED");
         } else {
-            INFO("PASSED: Reduced by " << measure_pct(program, temp) << " %")
-            program = temp;
+            // successful run, reset short-circuit
+            same_before_pruning = 0;
+        }
+        if (same_before_pruning >= NO_CHNG_ITERS) {
+            break;
         }
     }
     // Done pruning

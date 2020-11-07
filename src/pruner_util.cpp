@@ -94,4 +94,27 @@ void set_stripped_program_name(cstring program_name) {
     STRIPPED_NAME += "_stripped.p4";
 }
 
+int check_pruned_program(const IR::P4Program **orig_program,
+                         const IR::P4Program *pruned_program,
+                         P4PRUNER::PrunerOptions options, int req_exit_code) {
+    emit_p4_program(pruned_program, STRIPPED_NAME);
+    if (compare_files(pruned_program, *orig_program)) {
+        INFO("File has not changed. Skipping analysis.");
+        return EXIT_FAILURE;
+    }
+    int exit_code = get_exit_code(STRIPPED_NAME, options.validator_script);
+
+    // if got the right exit code, then modify the original program, if not
+    // then choose a smaller bank of statements to remove now.
+    if (exit_code != req_exit_code) {
+        INFO("FAILED");
+        return EXIT_FAILURE;
+    } else {
+        INFO("PASSED: Reduced by " << measure_pct(*orig_program, pruned_program)
+                                   << " %")
+        *orig_program = pruned_program;
+        return EXIT_SUCCESS;
+    }
+}
+
 } // namespace P4PRUNER

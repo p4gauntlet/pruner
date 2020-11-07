@@ -12,6 +12,16 @@
 #include "pruner_util.h"
 #include "statement_pruner.h"
 
+const IR::P4Program *prune(const IR::P4Program *program,
+                                   P4PRUNER::PrunerOptions options,
+                                   int req_exit_code) {
+    program = P4PRUNER::prune_statements(program, options, req_exit_code);
+    program = P4PRUNER::prune_expressions(program, options, req_exit_code);
+    program = P4PRUNER::prune_bool_expressions(program, options, req_exit_code);
+    program = P4PRUNER::apply_compiler_passes(program, options, req_exit_code);
+    return program;
+}
+
 int main(int argc, char *const argv[]) {
     AutoCompileContext autoP4toZ3Context(new P4PRUNER::P4PrunerContext);
     auto &options = P4PRUNER::P4PrunerContext::get().options();
@@ -57,26 +67,16 @@ int main(int argc, char *const argv[]) {
                 options.validator_script);
         return EXIT_FAILURE;
     }
-    int required_exit_code =
+    int req_exit_code =
         P4PRUNER::get_exit_code(options.file, options.validator_script);
-    INFO("Got code : " << required_exit_code << " for the main file");
+    INFO("Got code : " << req_exit_code << " for the main file");
 
     // parse the input P4 program
     program = P4::parseP4File(options);
     auto original = program;
 
     if (program != nullptr && ::errorCount() == 0) {
-        program =
-            P4PRUNER::prune_statements(program, options, required_exit_code);
-        program =
-            P4PRUNER::prune_expressions(program, options, required_exit_code);
-
-        program = P4PRUNER::prune_bool_expressions(program, options,
-                                                   required_exit_code);
-
-        // disabling compiler passes for now as some work is needed here
-        program = P4PRUNER::apply_compiler_passes(program, options,
-                                                  required_exit_code);
+        program = prune(program, options, req_exit_code);
         if (options.print_pruned) {
             P4PRUNER::print_p4_program(program);
         }
