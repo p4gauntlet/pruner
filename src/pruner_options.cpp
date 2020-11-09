@@ -18,6 +18,13 @@ PrunerOptions::PrunerOptions() {
         },
         "Whether to emit a p4 file after.");
     registerOption(
+        "--config", "file",
+        [this](const char *arg) {
+            config_file = arg;
+            return true;
+        },
+        "A configuration file with hints for validation.");
+    registerOption(
         "--validator_script", "file",
         [this](const char *arg) {
             validator_script = arg;

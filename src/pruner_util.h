@@ -15,6 +15,18 @@ cstring STRIPPED_NAME;
 
 namespace P4PRUNER {
 
+struct PrunerConfig {
+    int exit_code;
+    cstring validation_bin;
+    cstring prog_before;
+    cstring prog_post;
+    cstring compiler;
+    cstring output_dir;
+    PrunerConfig()
+        : exit_code(0), validation_bin(nullptr), prog_before{nullptr},
+          prog_post(nullptr), compiler(nullptr), output_dir(nullptr) {}
+};
+
 void set_seed(int64_t seed);
 int64_t get_rnd_int(int64_t min, int64_t max);
 big_int get_rnd_big_int(big_int min, big_int max);

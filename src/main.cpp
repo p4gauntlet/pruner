@@ -1,7 +1,9 @@
+#include <fstream>
+#include <iostream>
+#include <random>
 #include <sys/stat.h>
 
-#include <random>
-
+#include "contrib/json.h"
 #include "frontends/common/parseInput.h"
 #include "ir/ir.h"
 
@@ -13,8 +15,7 @@
 #include "statement_pruner.h"
 
 const IR::P4Program *prune(const IR::P4Program *program,
-                                   P4PRUNER::PrunerOptions options,
-                                   int req_exit_code) {
+                           P4PRUNER::PrunerOptions options, int req_exit_code) {
     program = P4PRUNER::prune_statements(program, options, req_exit_code);
     program = P4PRUNER::prune_expressions(program, options, req_exit_code);
     program = P4PRUNER::prune_bool_expressions(program, options, req_exit_code);
@@ -22,24 +23,7 @@ const IR::P4Program *prune(const IR::P4Program *program,
     return program;
 }
 
-int main(int argc, char *const argv[]) {
-    AutoCompileContext autoP4toZ3Context(new P4PRUNER::P4PrunerContext);
-    auto &options = P4PRUNER::P4PrunerContext::get().options();
-    options.langVersion = CompilerOptions::FrontendVersion::P4_16;
-    const IR::P4Program *program;
-
-    if (options.process(argc, argv) != nullptr) {
-        options.setInputFile();
-    }
-    if (::errorCount() > 0)
-        return 1;
-
-    if (options.file == nullptr || options.validator_script == nullptr) {
-        options.usage();
-        return 1;
-    }
-    P4PRUNER::set_stripped_program_name(options.file);
-
+void process_seed(P4PRUNER::PrunerOptions options) {
     uint64_t seed;
     if (options.seed) {
         std::cerr << "Using provided seed.\n";
@@ -57,26 +41,65 @@ int main(int argc, char *const argv[]) {
     }
     std::cerr << "Seed:" << seed << "\n";
     P4PRUNER::set_seed(seed);
+}
 
-    INFO("Checking " << options.file);
+int main(int argc, char *const argv[]) {
+    AutoCompileContext autoP4toZ3Context(new P4PRUNER::P4PrunerContext);
+    auto &options = P4PRUNER::P4PrunerContext::get().options();
+    options.langVersion = CompilerOptions::FrontendVersion::P4_16;
+    const IR::P4Program *program;
 
-    // Retrieve the exit code from the unchanged program
-    struct stat buffer;
-    if (stat(options.validator_script, &buffer) != 0) {
-        ::error("Validator Binary %s does not exist! Exiting.",
-                options.validator_script);
+    if (options.process(argc, argv) != nullptr) {
+        options.setInputFile();
+    }
+    if (::errorCount() > 0)
+        exit(EXIT_FAILURE);
+
+    if (options.file == nullptr) {
+        options.usage();
+        exit(EXIT_FAILURE);
+    }
+    P4PRUNER::set_stripped_program_name(options.file);
+
+    P4PRUNER::PrunerConfig pruner_conf;
+
+    if (options.config_file) {
+        std::ifstream config_file(options.config_file);
+        nlohmann::json config_json;
+        config_file >> config_json;
+        pruner_conf.exit_code = config_json.at("exit_code");
+        pruner_conf.compiler = cstring(config_json.at("compiler"));
+        pruner_conf.validation_bin = cstring(config_json.at("validation_bin"));
+        pruner_conf.prog_before = cstring(config_json.at("prog_before"));
+        pruner_conf.prog_post = cstring(config_json.at("prog_after"));
+
+    } else if (options.validator_script) {
+        // Retrieve the exit code from the unchanged program
+        struct stat buffer;
+        INFO("Checking " << options.file);
+        if (stat(options.validator_script, &buffer) != 0) {
+            ::error("Validator Binary %s does not exist! Exiting.",
+                    options.validator_script);
+            return EXIT_FAILURE;
+        }
+        pruner_conf.exit_code =
+            P4PRUNER::get_exit_code(options.file, options.validator_script);
+        INFO("Got code : " << pruner_conf.exit_code << " for the main file");
+
+    } else {
+        ::error("Need to provide either a validator_script or a config file!");
+        options.usage();
         return EXIT_FAILURE;
     }
-    int req_exit_code =
-        P4PRUNER::get_exit_code(options.file, options.validator_script);
-    INFO("Got code : " << req_exit_code << " for the main file");
+
+    process_seed(options);
 
     // parse the input P4 program
     program = P4::parseP4File(options);
     auto original = program;
 
     if (program != nullptr && ::errorCount() == 0) {
-        program = prune(program, options, req_exit_code);
+        program = prune(program, options, pruner_conf.exit_code);
         if (options.print_pruned) {
             P4PRUNER::print_p4_program(program);
         }
