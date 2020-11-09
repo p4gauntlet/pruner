@@ -21,10 +21,10 @@ struct PrunerConfig {
     cstring prog_before;
     cstring prog_post;
     cstring compiler;
-    cstring output_dir;
+    cstring working_dir;
     PrunerConfig()
         : exit_code(0), validation_bin(nullptr), prog_before{nullptr},
-          prog_post(nullptr), compiler(nullptr), output_dir(nullptr) {}
+          prog_post(nullptr), compiler(nullptr), working_dir(nullptr) {}
 };
 
 void set_seed(int64_t seed);
@@ -32,7 +32,8 @@ int64_t get_rnd_int(int64_t min, int64_t max);
 big_int get_rnd_big_int(big_int min, big_int max);
 double get_rnd_pct();
 
-int get_exit_code(cstring name, cstring validator_bin);
+bool file_exists(cstring file_path);
+int get_exit_code(cstring name, P4PRUNER::PrunerConfig pruner_conf);
 cstring remove_extension(cstring filename);
 void emit_p4_program(const IR::P4Program *program, cstring prog_name);
 void print_p4_program(const IR::P4Program *program);

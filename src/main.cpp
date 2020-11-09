@@ -1,7 +1,9 @@
+
 #include <fstream>
 #include <iostream>
 #include <random>
-#include <sys/stat.h>
+
+#include <boost/filesystem.hpp>
 
 #include "contrib/json.h"
 #include "frontends/common/parseInput.h"
@@ -43,16 +45,11 @@ void process_seed(P4PRUNER::PrunerOptions options) {
     P4PRUNER::set_seed(seed);
 }
 
-P4PRUNER::PrunerConfig get_config_from_script(P4PRUNER::PrunerOptions options) {
-    P4PRUNER::PrunerConfig pruner_conf;
-
-    pruner_conf.exit_code =
-        P4PRUNER::get_exit_code(options.file, options.validator_script);
-    INFO("Got code : " << pruner_conf.exit_code << " for the main file");
-    return pruner_conf;
-}
-
 P4PRUNER::PrunerConfig get_config(P4PRUNER::PrunerOptions options) {
+    if (!P4PRUNER::file_exists(options.config_file)) {
+        ::error("Config file %s does not exist! Exiting.", options.config_file);
+        exit(EXIT_FAILURE);
+    }
     P4PRUNER::PrunerConfig pruner_conf;
     nlohmann::json config_json;
 
@@ -64,7 +61,47 @@ P4PRUNER::PrunerConfig get_config(P4PRUNER::PrunerOptions options) {
     pruner_conf.validation_bin = cstring(config_json.at("validation_bin"));
     pruner_conf.prog_before = cstring(config_json.at("prog_before"));
     pruner_conf.prog_post = cstring(config_json.at("prog_after"));
+    pruner_conf.working_dir = options.working_dir;
     return pruner_conf;
+}
+
+P4PRUNER::PrunerConfig get_config_from_script(P4PRUNER::PrunerOptions options) {
+    INFO("Grabbing config by using the validation script.");
+    if (!P4PRUNER::file_exists(options.validation_bin)) {
+        ::error("Validator Binary %s does not exist! Exiting.",
+                options.validation_bin);
+        exit(EXIT_FAILURE);
+    }
+    P4PRUNER::PrunerConfig pruner_conf;
+
+    cstring command = "python3 ";
+    command += options.validation_bin;
+    command += " -i ";
+    command += options.file;
+    // suppress output
+    command += " -ll CRITICAL ";
+    // change the output dir
+    command += " -o ";
+    command += options.working_dir;
+    // also toggle config recording
+    command += " -d ";
+    system(command);
+    cstring file_name;
+    cstring stripped_name = P4PRUNER::remove_extension(options.file);
+    const char *pos = stripped_name.findlast('/');
+    size_t idx = (size_t)(pos - stripped_name);
+    if (idx != std::string::npos)
+        file_name = stripped_name.substr(idx + 1);
+    else
+        file_name = stripped_name;
+    cstring config_file = realpath(options.working_dir, nullptr);
+    config_file += "/";
+    config_file += file_name;
+    config_file += "/";
+    config_file += file_name;
+    config_file += "_info.json";
+    options.config_file = config_file;
+    return get_config(options);
 }
 
 int main(int argc, char *const argv[]) {
@@ -85,26 +122,23 @@ int main(int argc, char *const argv[]) {
     }
     P4PRUNER::set_stripped_program_name(options.file);
 
+    if (P4PRUNER::file_exists(options.working_dir)) {
+        ::error("Working directory already exists. To be safe, please choose a "
+                "non-existent directory.");
+        return EXIT_FAILURE;
+    }
+
     P4PRUNER::PrunerConfig pruner_conf;
 
     if (options.config_file) {
         pruner_conf = get_config(options);
-    } else if (options.validator_script) {
-        // Retrieve the exit code from the unchanged program
-        struct stat buffer;
-        INFO("Checking " << options.file);
-        if (stat(options.validator_script, &buffer) != 0) {
-            ::error("Validator Binary %s does not exist! Exiting.",
-                    options.validator_script);
-            return EXIT_FAILURE;
-        }
+    } else if (options.validation_bin) {
         pruner_conf = get_config_from_script(options);
     } else {
-        ::error("Need to provide either a validator_script or a config file!");
+        ::error("Need to provide either a validation_bin or a config file!");
         options.usage();
         return EXIT_FAILURE;
     }
-
     // if a seed was provided, use it
     // otherwise generate a random seed and set it
     process_seed(options);
@@ -124,6 +158,9 @@ int main(int argc, char *const argv[]) {
         INFO("Total reduction percentage = "
              << P4PRUNER::measure_pct(original, program) << " %");
     }
-
+    INFO("Done. Removing ephemeral working directory.");
+    cstring cmd = "rm -rf ";
+    cmd += pruner_conf.working_dir;
+    system(cmd);
     return ::errorCount() > 0;
 }

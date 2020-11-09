@@ -25,12 +25,19 @@ PrunerOptions::PrunerOptions() {
         },
         "A configuration file with hints for validation.");
     registerOption(
-        "--validator_script", "file",
+        "--validation_bin", "file",
         [this](const char *arg) {
-            validator_script = arg;
+            validation_bin = arg;
             return true;
         },
         "Path to the validation python script");
+    registerOption(
+        "--working_dir", "file",
+        [this](const char *arg) {
+            working_dir = arg;
+            return true;
+        },
+        "Where to place ephemeral files.");
     registerOption(
         "--print_pruned", nullptr,
         [this](const char *) {

@@ -1,3 +1,5 @@
+#include <sys/stat.h>
+
 #include <fstream>
 #include <memory>
 
@@ -27,13 +29,27 @@ double get_rnd_pct() {
     return distribution(rng);
 }
 
-int get_exit_code(cstring name, cstring validator_bin) {
+bool file_exists(cstring file_path) {
+    struct stat buffer;
+    INFO("Checking if " << file_path << " exists.");
+    if (stat(file_path, &buffer) != 0) {
+        return false;
+    }
+    return true;
+}
+
+int get_exit_code(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     INFO("Checking exit code.");
-    cstring command = validator_bin;
+    cstring command = pruner_conf.validation_bin;
     // suppress output
     command += " -i ";
     command += name;
+    // set the output dir
+    command += " -o ";
+    command += pruner_conf.working_dir;
     command += " -ll CRITICAL ";
+    command += " -p ";
+    command += pruner_conf.compiler;
     return WEXITSTATUS(system(command.c_str()));
 }
 
@@ -102,7 +118,7 @@ int check_pruned_program(const IR::P4Program **orig_program,
         INFO("File has not changed. Skipping analysis.");
         return EXIT_FAILURE;
     }
-    int exit_code = get_exit_code(STRIPPED_NAME, pruner_conf.validation_bin);
+    int exit_code = get_exit_code(STRIPPED_NAME, pruner_conf);
     // if got the right exit code, then modify the original program, if not
     // then choose a smaller bank of statements to remove now.
     if (exit_code != pruner_conf.exit_code) {

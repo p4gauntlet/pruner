@@ -14,7 +14,8 @@ class PrunerOptions : public CompilerOptions {
     // output file
     cstring o_file = nullptr;
     cstring config_file = nullptr;
-    cstring validator_script = nullptr;
+    cstring validation_bin = nullptr;
+    cstring working_dir = "pruned/";
     bool emit_p4 = false;
     bool do_rnd_prune = false;
     bool print_pruned = false;
