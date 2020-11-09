@@ -2,12 +2,12 @@
 #define _PRUNE_UNUSED_H_
 
 #include "frontends/common/resolveReferences/resolveReferences.h"
+#include "frontends/p4/unusedDeclarations.h"
 #include "ir/ir.h"
 
 namespace P4PRUNER {
 
-class PruneUnused : public Transform {
-    const P4::ReferenceMap *refMap;
+class PruneUnused : public P4::RemoveUnusedDeclarations {
 
     const IR::Node *process(const IR::IDeclaration *decl);
 
@@ -31,10 +31,10 @@ class PruneUnused : public Transform {
     const IR::Node *preorder(IR::Type_Error *type) override;
     // FIXME
     // makeshift solution for right now /////////////////////////////////
-    const IR::Node *preorder(IR::Declaration_MatchKind *decl);
-    const IR::Node *preorder(IR::Type_StructLike *type);
-    const IR::Node *preorder(IR::Type_Extern *type);
-    const IR::Node *preorder(IR::Type_Method *type);
+    // const IR::Node *preorder(IR::Type_StructLike *type);
+    // const IR::Node *preorder(IR::Type_Extern *type);
+    // const IR::Node *preorder(IR::Declaration_MatchKind *decl);
+    // const IR::Node *preorder(IR::Type_Method *type);
     ///////////////////////////////////////////////////////////////////////
     const IR::Node *preorder(IR::Parameter *param) override { return param; }
     const IR::Node *preorder(IR::NamedExpression *ne) override { return ne; }
