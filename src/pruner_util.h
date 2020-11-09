@@ -32,7 +32,7 @@ int64_t get_rnd_int(int64_t min, int64_t max);
 big_int get_rnd_big_int(big_int min, big_int max);
 double get_rnd_pct();
 
-int get_exit_code(cstring name, cstring validator_script);
+int get_exit_code(cstring name, cstring validator_bin);
 cstring remove_extension(cstring filename);
 void emit_p4_program(const IR::P4Program *program, cstring prog_name);
 void print_p4_program(const IR::P4Program *program);
@@ -45,7 +45,7 @@ double measure_pct(const IR::P4Program *prog_before,
                    const IR::P4Program *prog_after);
 int check_pruned_program(const IR::P4Program **orig_program,
                          const IR::P4Program *pruned_program,
-                         P4PRUNER::PrunerOptions options, int req_exit_code);
+                         P4PRUNER::PrunerConfig pruner_conf);
 } // namespace P4PRUNER
 
 #endif /* _PRUNER_UTIL_H_ */

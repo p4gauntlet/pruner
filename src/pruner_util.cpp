@@ -27,14 +27,14 @@ double get_rnd_pct() {
     return distribution(rng);
 }
 
-int get_exit_code(cstring name, cstring validator_script) {
-    INFO("Checking exit code...");
-    cstring command = "python3 ";
-    command += realpath(validator_script, NULL);
+int get_exit_code(cstring name, cstring validator_bin) {
+    INFO("Checking exit code.");
+    cstring command = validator_bin;
+    // suppress output
     command += " -i ";
     command += name;
-    command += " 2> /dev/null";
-    return system(command.c_str());
+    command += " -ll CRITICAL ";
+    return WEXITSTATUS(system(command.c_str()));
 }
 
 cstring remove_extension(cstring filename) {
@@ -96,17 +96,16 @@ void set_stripped_program_name(cstring program_name) {
 
 int check_pruned_program(const IR::P4Program **orig_program,
                          const IR::P4Program *pruned_program,
-                         P4PRUNER::PrunerOptions options, int req_exit_code) {
+                         P4PRUNER::PrunerConfig pruner_conf) {
     emit_p4_program(pruned_program, STRIPPED_NAME);
     if (compare_files(pruned_program, *orig_program)) {
         INFO("File has not changed. Skipping analysis.");
         return EXIT_FAILURE;
     }
-    int exit_code = get_exit_code(STRIPPED_NAME, options.validator_script);
-
+    int exit_code = get_exit_code(STRIPPED_NAME, pruner_conf.validation_bin);
     // if got the right exit code, then modify the original program, if not
     // then choose a smaller bank of statements to remove now.
-    if (exit_code != req_exit_code) {
+    if (exit_code != pruner_conf.exit_code) {
         INFO("FAILED");
         return EXIT_FAILURE;
     } else {

@@ -15,11 +15,11 @@
 #include "statement_pruner.h"
 
 const IR::P4Program *prune(const IR::P4Program *program,
-                           P4PRUNER::PrunerOptions options, int req_exit_code) {
-    program = P4PRUNER::prune_statements(program, options, req_exit_code);
-    program = P4PRUNER::prune_expressions(program, options, req_exit_code);
-    program = P4PRUNER::prune_bool_expressions(program, options, req_exit_code);
-    program = P4PRUNER::apply_compiler_passes(program, options, req_exit_code);
+                           P4PRUNER::PrunerConfig pruner_conf) {
+    program = P4PRUNER::prune_statements(program, pruner_conf);
+    program = P4PRUNER::prune_expressions(program, pruner_conf);
+    program = P4PRUNER::prune_bool_expressions(program, pruner_conf);
+    program = P4PRUNER::apply_compiler_passes(program, pruner_conf);
     return program;
 }
 
@@ -43,6 +43,30 @@ void process_seed(P4PRUNER::PrunerOptions options) {
     P4PRUNER::set_seed(seed);
 }
 
+P4PRUNER::PrunerConfig get_config_from_script(P4PRUNER::PrunerOptions options) {
+    P4PRUNER::PrunerConfig pruner_conf;
+
+    pruner_conf.exit_code =
+        P4PRUNER::get_exit_code(options.file, options.validator_script);
+    INFO("Got code : " << pruner_conf.exit_code << " for the main file");
+    return pruner_conf;
+}
+
+P4PRUNER::PrunerConfig get_config(P4PRUNER::PrunerOptions options) {
+    P4PRUNER::PrunerConfig pruner_conf;
+    nlohmann::json config_json;
+
+    std::ifstream config_file(options.config_file);
+    config_file >> config_json;
+
+    pruner_conf.exit_code = config_json.at("exit_code");
+    pruner_conf.compiler = cstring(config_json.at("compiler"));
+    pruner_conf.validation_bin = cstring(config_json.at("validation_bin"));
+    pruner_conf.prog_before = cstring(config_json.at("prog_before"));
+    pruner_conf.prog_post = cstring(config_json.at("prog_after"));
+    return pruner_conf;
+}
+
 int main(int argc, char *const argv[]) {
     AutoCompileContext autoP4toZ3Context(new P4PRUNER::P4PrunerContext);
     auto &options = P4PRUNER::P4PrunerContext::get().options();
@@ -64,15 +88,7 @@ int main(int argc, char *const argv[]) {
     P4PRUNER::PrunerConfig pruner_conf;
 
     if (options.config_file) {
-        std::ifstream config_file(options.config_file);
-        nlohmann::json config_json;
-        config_file >> config_json;
-        pruner_conf.exit_code = config_json.at("exit_code");
-        pruner_conf.compiler = cstring(config_json.at("compiler"));
-        pruner_conf.validation_bin = cstring(config_json.at("validation_bin"));
-        pruner_conf.prog_before = cstring(config_json.at("prog_before"));
-        pruner_conf.prog_post = cstring(config_json.at("prog_after"));
-
+        pruner_conf = get_config(options);
     } else if (options.validator_script) {
         // Retrieve the exit code from the unchanged program
         struct stat buffer;
@@ -82,24 +98,22 @@ int main(int argc, char *const argv[]) {
                     options.validator_script);
             return EXIT_FAILURE;
         }
-        pruner_conf.exit_code =
-            P4PRUNER::get_exit_code(options.file, options.validator_script);
-        INFO("Got code : " << pruner_conf.exit_code << " for the main file");
-
+        pruner_conf = get_config_from_script(options);
     } else {
         ::error("Need to provide either a validator_script or a config file!");
         options.usage();
         return EXIT_FAILURE;
     }
 
+    // if a seed was provided, use it
+    // otherwise generate a random seed and set it
     process_seed(options);
-
     // parse the input P4 program
     program = P4::parseP4File(options);
-    auto original = program;
 
     if (program != nullptr && ::errorCount() == 0) {
-        program = prune(program, options, pruner_conf.exit_code);
+        auto original = program;
+        program = prune(program, pruner_conf);
         if (options.print_pruned) {
             P4PRUNER::print_p4_program(program);
         }
