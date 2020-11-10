@@ -3,13 +3,11 @@
 #include <iostream>
 #include <random>
 
-#include <boost/filesystem.hpp>
-
 #include "contrib/json.h"
 #include "frontends/common/parseInput.h"
 #include "ir/ir.h"
 
-#include "boolean_pass.h"
+#include "boolean_pruner.h"
 #include "compiler_pruner.h"
 #include "expression_pruner.h"
 #include "pruner_options.h"
@@ -62,6 +60,11 @@ P4PRUNER::PrunerConfig get_config(P4PRUNER::PrunerOptions options) {
     pruner_conf.prog_before = cstring(config_json.at("prog_before"));
     pruner_conf.prog_post = cstring(config_json.at("prog_after"));
     pruner_conf.working_dir = options.working_dir;
+    // also store the new output name
+    // TODO(fruffy): Make this an option
+    cstring output_name = P4PRUNER::remove_extension(options.file);
+    output_name += "_stripped.p4";
+    pruner_conf.out_file_name = output_name;
     return pruner_conf;
 }
 
@@ -72,8 +75,8 @@ P4PRUNER::PrunerConfig get_config_from_script(P4PRUNER::PrunerOptions options) {
                 options.validation_bin);
         exit(EXIT_FAILURE);
     }
-    P4PRUNER::PrunerConfig pruner_conf;
 
+    // assemble the command to run the validation script to get a config file
     cstring command = "python3 ";
     command += options.validation_bin;
     command += " -i ";
@@ -85,20 +88,19 @@ P4PRUNER::PrunerConfig get_config_from_script(P4PRUNER::PrunerOptions options) {
     command += options.working_dir;
     // also toggle config recording
     command += " -d ";
-    system(command);
-    cstring file_name;
-    cstring stripped_name = P4PRUNER::remove_extension(options.file);
-    const char *pos = stripped_name.findlast('/');
-    size_t idx = (size_t)(pos - stripped_name);
-    if (idx != std::string::npos)
-        file_name = stripped_name.substr(idx + 1);
-    else
-        file_name = stripped_name;
+    int ret = system(command);
+    if (ret == 0) {
+        ::warning("There was no error. Pruning will yield bogus results.");
+    }
+
+    cstring file_stem = P4PRUNER::get_file_stem(options.file);
+    // assemble the path for the config file
+    // this is not great but we have no other way right now
     cstring config_file = realpath(options.working_dir, nullptr);
     config_file += "/";
-    config_file += file_name;
+    config_file += file_stem;
     config_file += "/";
-    config_file += file_name;
+    config_file += file_stem;
     config_file += "_info.json";
     options.config_file = config_file;
     return get_config(options);
@@ -120,7 +122,6 @@ int main(int argc, char *const argv[]) {
         options.usage();
         exit(EXIT_FAILURE);
     }
-    P4PRUNER::set_stripped_program_name(options.file);
 
     if (P4PRUNER::file_exists(options.working_dir)) {
         ::error("Working directory already exists. To be safe, please choose a "
@@ -153,14 +154,12 @@ int main(int argc, char *const argv[]) {
         }
         // if the emit flag is enabled, also emit the new P4 program
         if (options.emit_p4) {
-            P4PRUNER::emit_p4_program(program, STRIPPED_NAME);
+            P4PRUNER::emit_p4_program(program, pruner_conf.out_file_name);
         }
         INFO("Total reduction percentage = "
              << P4PRUNER::measure_pct(original, program) << " %");
     }
     INFO("Done. Removing ephemeral working directory.");
-    cstring cmd = "rm -rf ";
-    cmd += pruner_conf.working_dir;
-    system(cmd);
+    P4PRUNER::remove_file(pruner_conf.working_dir);
     return ::errorCount() > 0;
 }

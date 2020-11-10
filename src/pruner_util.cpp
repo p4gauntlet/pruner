@@ -2,6 +2,7 @@
 
 #include <fstream>
 #include <memory>
+#include <string>
 
 #include <boost/random.hpp>
 
@@ -29,6 +30,8 @@ double get_rnd_pct() {
     return distribution(rng);
 }
 
+
+
 bool file_exists(cstring file_path) {
     struct stat buffer;
     INFO("Checking if " << file_path << " exists.");
@@ -36,6 +39,40 @@ bool file_exists(cstring file_path) {
         return false;
     }
     return true;
+}
+
+void remove_file(cstring file_path) {
+    int ret;
+    cstring cmd = "rm -rf ";
+    cmd += file_path;
+    ret = system(cmd);
+    if (ret) {
+        ::warning("Removing file or folder %s failed.", file_path);
+    }
+}
+
+cstring get_file_stem(cstring file_path) {
+    cstring file_stem;
+    cstring stripped_name = P4PRUNER::remove_extension(file_path);
+    const char *pos = stripped_name.findlast('/');
+    size_t idx = (size_t)(pos - stripped_name);
+    if (idx != std::string::npos)
+        file_stem = stripped_name.substr(idx + 1);
+    else
+        file_stem = stripped_name;
+    return file_stem;
+}
+
+cstring remove_extension(cstring file_path) {
+    // find the last dot
+    const char *last_dot = file_path.findlast('.');
+    // there is no dot in this string, just return the full name
+    if (not last_dot) {
+        return file_path;
+    }
+    // otherwise get the index, remove the dot
+    size_t idx = (size_t)(last_dot - file_path);
+    return file_path.substr(0, idx);
 }
 
 int get_exit_code(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
@@ -51,18 +88,6 @@ int get_exit_code(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     command += " -p ";
     command += pruner_conf.compiler;
     return WEXITSTATUS(system(command.c_str()));
-}
-
-cstring remove_extension(cstring filename) {
-    // find the last dot
-    const char *last_dot = filename.findlast('.');
-    // there is no dot in this string, just return the full name
-    if (not last_dot) {
-        return filename;
-    }
-    // otherwise get the index, remove the dot
-    size_t idx = (size_t)(last_dot - filename);
-    return filename.substr(0, idx);
 }
 
 void emit_p4_program(const IR::P4Program *program, cstring prog_name) {
@@ -105,20 +130,15 @@ double measure_pct(const IR::P4Program *prog_before,
     return (before_len - after_len) * (100.0 / before_len);
 }
 
-void set_stripped_program_name(cstring program_name) {
-    STRIPPED_NAME = remove_extension(program_name);
-    STRIPPED_NAME += "_stripped.p4";
-}
-
 int check_pruned_program(const IR::P4Program **orig_program,
                          const IR::P4Program *pruned_program,
                          P4PRUNER::PrunerConfig pruner_conf) {
-    emit_p4_program(pruned_program, STRIPPED_NAME);
+    emit_p4_program(pruned_program, pruner_conf.out_file_name);
     if (compare_files(pruned_program, *orig_program)) {
         INFO("File has not changed. Skipping analysis.");
         return EXIT_FAILURE;
     }
-    int exit_code = get_exit_code(STRIPPED_NAME, pruner_conf);
+    int exit_code = get_exit_code(pruner_conf.out_file_name, pruner_conf);
     // if got the right exit code, then modify the original program, if not
     // then choose a smaller bank of statements to remove now.
     if (exit_code != pruner_conf.exit_code) {

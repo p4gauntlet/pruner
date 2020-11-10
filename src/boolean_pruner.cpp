@@ -1,4 +1,4 @@
-#include "boolean_pass.h"
+#include "boolean_pruner.h"
 #include "ir/visitor.h"
 
 namespace P4PRUNER {

@@ -11,7 +11,6 @@
 #define PRUNE_STMT_MAX 100
 #define PRUNE_ITERS 50
 #define NO_CHNG_ITERS 7
-cstring STRIPPED_NAME;
 
 namespace P4PRUNER {
 
@@ -22,9 +21,11 @@ struct PrunerConfig {
     cstring prog_post;
     cstring compiler;
     cstring working_dir;
+    cstring out_file_name;
     PrunerConfig()
         : exit_code(0), validation_bin(nullptr), prog_before{nullptr},
-          prog_post(nullptr), compiler(nullptr), working_dir(nullptr) {}
+          prog_post(nullptr), compiler(nullptr), working_dir(nullptr),
+          out_file_name(nullptr) {}
 };
 
 void set_seed(int64_t seed);
@@ -33,11 +34,13 @@ big_int get_rnd_big_int(big_int min, big_int max);
 double get_rnd_pct();
 
 bool file_exists(cstring file_path);
+void remove_file(cstring file_path);
+cstring remove_extension(cstring file_path);
+cstring get_file_stem(cstring file_path);
+
 int get_exit_code(cstring name, P4PRUNER::PrunerConfig pruner_conf);
-cstring remove_extension(cstring filename);
 void emit_p4_program(const IR::P4Program *program, cstring prog_name);
 void print_p4_program(const IR::P4Program *program);
-void set_stripped_program_name(cstring program_name);
 
 bool compare_files(const IR::P4Program *prog_before,
                    const IR::P4Program *prog_after);

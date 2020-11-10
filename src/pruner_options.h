@@ -12,7 +12,6 @@ class PrunerOptions : public CompilerOptions {
  public:
     PrunerOptions();
     // output file
-    cstring o_file = nullptr;
     cstring config_file = nullptr;
     cstring validation_bin = nullptr;
     cstring working_dir = "pruned/";
