@@ -24,8 +24,8 @@ class PruneUnused : public P4::RemoveUnusedDeclarations {
     const IR::Node *preorder(IR::Type_StructLike *type) override;
     const IR::Node *preorder(IR::Type_Extern *type) override;
     const IR::Node *preorder(IR::Type_Method *type) override;
-    const IR::Node *
-    PruneUnused::preorder(IR::Declaration_Variable *decl) override;
+    const IR::Node *preorder(IR::Declaration_Variable *decl) override;
+    const IR::Node *preorder(IR::Declaration_Instance *decl) override;
 };
 
 class PruneAllUnused : public PassManager {

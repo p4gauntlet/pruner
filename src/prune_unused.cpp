@@ -4,6 +4,18 @@
 #include "pruner_util.h"
 namespace P4PRUNER {
 
+const IR::Node *PruneUnused::process(const IR::IDeclaration *decl) {
+    INFO("Visiting " << decl);
+    if (decl->getName().name == IR::ParserState::verify &&
+        getParent<IR::P4Program>())
+        return decl->getNode();
+    if (refMap->isUsed(getOriginal<IR::IDeclaration>()))
+        return decl->getNode();
+    INFO("Removing " << getOriginal());
+    prune(); // no need to go deeper
+    return nullptr;
+}
+
 const IR::Node *PruneUnused::preorder(IR::Declaration_Variable *decl) {
     prune();
     if (decl->initializer == nullptr)
@@ -13,29 +25,29 @@ const IR::Node *PruneUnused::preorder(IR::Declaration_Variable *decl) {
     return decl;
 }
 
+const IR::Node *PruneUnused::preorder(IR::Type_Error *type) {
+    // prune();
+    return process(type);
+}
+const IR::Node *PruneUnused::preorder(IR::Type_StructLike *type) {
+    // prune();
+    return process(type);
+}
+const IR::Node *PruneUnused::preorder(IR::Type_Extern *type) {
+    // prune();
+    return process(type);
+}
+const IR::Node *PruneUnused::preorder(IR::Type_Method *type) {
+    // prune();
+    return type;
+}
+
 const IR::Node *PruneUnused::preorder(IR::Declaration_Instance *decl) {
     // Don't delete instances; they may have consequences on the control-plane
     // API
     // if (decl->getName().name == IR::P4Program::main &&
     //     getParent<IR::P4Program>())
     //     return decl;
-
-    const IR::Node *preorder(IR::Type_Error * type) {
-        // prune();
-        return process(type);
-    }
-    const IR::Node *preorder(IR::Type_StructLike * type) {
-        // prune();
-        return process(type);
-    }
-    const IR::Node *preorder(IR::Type_Extern * type) {
-        // prune();
-        return process(type);
-    }
-    const IR::Node *preorder(IR::Type_Method * type) {
-        // prune();
-        return process(type);
-    }
 
     if (!refMap->isUsed(getOriginal<IR::Declaration_Instance>())) {
 
