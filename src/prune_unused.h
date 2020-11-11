@@ -8,31 +8,30 @@
 namespace P4PRUNER {
 
 class PruneUnused : public P4::RemoveUnusedDeclarations {
-    const P4::ReferenceMap *refMap;
-
-    // bool giveWarning(const IR::Node *node);
-    const IR::Node *process(const IR::IDeclaration *decl);
+    // the refmap of the parent class is private so we have to use our own
+    // a little bit unfortunate but the pointer is the same
+    // we also do not modify the map so this is fairly safe
+    const P4::ReferenceMap *unused_refMap;
 
  public:
     explicit PruneUnused(const P4::ReferenceMap *refMap)
-        : P4::RemoveUnusedDeclarations(refMap) {
+        : P4::RemoveUnusedDeclarations(refMap), unused_refMap(refMap) {
         CHECK_NULL(refMap);
         setName("PruneUnused");
     }
-
-    // const IR::Node *preorder(IR::Type_Error *type) override;
     const IR::Node *preorder(IR::Type_StructLike *type) override;
     const IR::Node *preorder(IR::Type_Extern *type) override;
-    const IR::Node *preorder(IR::Type_Method *type) override;
-    const IR::Node *preorder(IR::Declaration_Variable *decl) override;
-    const IR::Node *preorder(IR::Declaration_Instance *decl) override;
+    const IR::Node *preorder(IR::Method *type) override;
+    const IR::Node *preorder(IR::Function *type) override;
 };
 
 class PruneAllUnused : public PassManager {
  public:
     explicit PruneAllUnused(P4::ReferenceMap *refMap) {
+        CHECK_NULL(refMap);
         passes.emplace_back(new PassRepeated{new P4::ResolveReferences(refMap),
                                              new PruneUnused(refMap)});
+        setName("ExtendedUnusedDeclarations");
     }
 };
 
