@@ -25,10 +25,10 @@ const IR::Node *PruneUnused::preorder(IR::Declaration_Variable *decl) {
     return decl;
 }
 
-const IR::Node *PruneUnused::preorder(IR::Type_Error *type) {
-    // prune();
-    return process(type);
-}
+// const IR::Node *PruneUnused::preorder(IR::Type_Error *type) {
+//     // prune();
+//     return process(type);
+// }
 const IR::Node *PruneUnused::preorder(IR::Type_StructLike *type) {
     // prune();
     return process(type);

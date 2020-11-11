@@ -20,7 +20,7 @@ class PruneUnused : public P4::RemoveUnusedDeclarations {
         setName("PruneUnused");
     }
 
-    const IR::Node *preorder(IR::Type_Error *type) override;
+    // const IR::Node *preorder(IR::Type_Error *type) override;
     const IR::Node *preorder(IR::Type_StructLike *type) override;
     const IR::Node *preorder(IR::Type_Extern *type) override;
     const IR::Node *preorder(IR::Type_Method *type) override;
