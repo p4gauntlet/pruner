@@ -1,7 +1,6 @@
-#include "prune_unused.h"
+#include "extended_unused.h"
+
 #include "frontends/p4/sideEffects.h"
-#include "ir/visitor.h"
-#include "pruner_util.h"
 
 namespace P4PRUNER {
 

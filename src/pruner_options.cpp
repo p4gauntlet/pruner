@@ -4,7 +4,7 @@ namespace P4PRUNER {
 
 PrunerOptions::PrunerOptions() {
     registerOption(
-        "--emit_p4", nullptr,
+        "--emit-p4", nullptr,
         [this](const char *) {
             emit_p4 = true;
             return true;
@@ -18,21 +18,21 @@ PrunerOptions::PrunerOptions() {
         },
         "A configuration file with hints for validation.");
     registerOption(
-        "--validation_bin", "file",
+        "--validation-bin", "file",
         [this](const char *arg) {
             validation_bin = arg;
             return true;
         },
         "Path to the validation python script");
     registerOption(
-        "--working_dir", "file",
+        "--working-dir", "file",
         [this](const char *arg) {
             working_dir = arg;
             return true;
         },
         "Where to place ephemeral files.");
     registerOption(
-        "--print_pruned", nullptr,
+        "--print-pruned", nullptr,
         [this](const char *) {
             print_pruned = true;
             return true;
@@ -44,8 +44,8 @@ PrunerOptions::PrunerOptions() {
             seed = arg;
             return true;
         },
-        "The seed for the random program. If no seed is provided we generate "
-        "our own.");
+        "The seed for the random program. "
+        "If no seed is provided we generate our own.");
 }
 
 } // namespace P4PRUNER

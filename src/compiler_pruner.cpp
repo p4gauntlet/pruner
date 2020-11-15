@@ -7,7 +7,8 @@
 #include "frontends/p4/unusedDeclarations.h"
 
 #include "compiler_pruner.h"
-#include "prune_unused.h"
+#include "extended_unused.h"
+
 namespace P4PRUNER {
 
 
@@ -22,8 +23,7 @@ const IR::P4Program *apply_unused_decls(const IR::P4Program *program,
         new P4::ConstantFolding(&refMap, nullptr),
         new P4::InstantiateDirectCalls(&refMap),
         new P4::TypeInference(&refMap, &typeMap, false),
-        // new P4::RemoveAllUnusedDeclarations(&refMap, false)};
-        new PruneAllUnused(&refMap)};
+        new ExtendedUnusedDeclarations(&refMap)};
 
     INFO("Applying custom RemoveAllUnusedDeclarations...");
     temp = program->apply(pass_manager);
