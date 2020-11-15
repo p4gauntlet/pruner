@@ -25,9 +25,9 @@ class PruneUnused : public P4::RemoveUnusedDeclarations {
     const IR::Node *preorder(IR::Function *type) override;
 };
 
-class PruneAllUnused : public PassManager {
+class ExtendedUnusedDeclarations : public PassManager {
  public:
-    explicit PruneAllUnused(P4::ReferenceMap *refMap) {
+    explicit ExtendedUnusedDeclarations(P4::ReferenceMap *refMap) {
         CHECK_NULL(refMap);
         passes.emplace_back(new PassRepeated{new P4::ResolveReferences(refMap),
                                              new PruneUnused(refMap)});

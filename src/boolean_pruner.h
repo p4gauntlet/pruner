@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "ir/ir.h"
-#include "pruner_options.h"
+#include "pruner_util.h"
 
 namespace P4PRUNER {
 
@@ -23,8 +23,7 @@ class BoolExpressionPruner : public Transform {
 };
 
 const IR::P4Program *prune_bool_expressions(const IR::P4Program *program,
-                                            P4PRUNER::PrunerOptions options,
-                                            int required_exit_code);
+                                            P4PRUNER::PrunerConfig pruner_conf);
 
 } // namespace P4PRUNER
 

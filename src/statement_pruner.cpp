@@ -1,7 +1,6 @@
-#include <algorithm>    // std::min
+#include <algorithm> // std::min
 
 #include "ir/visitor.h"
-#include "pruner_util.h"
 #include "statement_pruner.h"
 
 namespace P4PRUNER {
@@ -66,8 +65,7 @@ remove_statements(const IR::P4Program *temp,
 }
 
 const IR::P4Program *prune_statements(const IR::P4Program *program,
-                                      P4PRUNER::PrunerOptions options,
-                                      int req_exit_code) {
+                                      P4PRUNER::PrunerConfig pruner_conf) {
     int same_before_pruning = 0;
     int result;
     int max_statements = PRUNE_STMT_MAX;
@@ -78,7 +76,7 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
         std::vector<const IR::Statement *> to_prune =
             collect_statements(temp, max_statements);
         temp = remove_statements(temp, to_prune);
-        result = check_pruned_program(&program, temp, options, req_exit_code);
+        result = check_pruned_program(&program, temp, pruner_conf);
         if (result != EXIT_SUCCESS) {
             same_before_pruning++;
             max_statements = std::max(1, max_statements / 2);

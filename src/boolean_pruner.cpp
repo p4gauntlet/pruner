@@ -1,6 +1,5 @@
-#include "boolean_pass.h"
+#include "boolean_pruner.h"
 #include "ir/visitor.h"
-#include "pruner_util.h"
 
 namespace P4PRUNER {
 
@@ -45,16 +44,16 @@ const IR::P4Program *remove_bool_expressions(const IR::P4Program *temp) {
     return temp;
 }
 
-const IR::P4Program *prune_bool_expressions(const IR::P4Program *program,
-                                            P4PRUNER::PrunerOptions options,
-                                            int req_exit_code) {
+const IR::P4Program *
+prune_bool_expressions(const IR::P4Program *program,
+                       P4PRUNER::PrunerConfig pruner_conf) {
     int same_before_pruning = 0;
     int result;
     INFO("\nReducing boolean expressions")
     for (int i = 0; i < PRUNE_ITERS; i++) {
         auto temp = program;
         temp = remove_bool_expressions(temp);
-        result = check_pruned_program(&program, temp, options, req_exit_code);
+        result = check_pruned_program(&program, temp, pruner_conf);
         if (result != EXIT_SUCCESS) {
             same_before_pruning++;
         } else {

@@ -4,7 +4,7 @@
 #include <vector>
 
 #include "ir/ir.h"
-#include "pruner_options.h"
+#include "pruner_util.h"
 
 namespace P4PRUNER {
 
@@ -34,8 +34,7 @@ class Collector : public Inspector {
 };
 
 const IR::P4Program *prune_statements(const IR::P4Program *program,
-                                      P4PRUNER::PrunerOptions options,
-                                      int required_exit_code);
+                                      P4PRUNER::PrunerConfig pruner_conf);
 
 } // namespace P4PRUNER
 

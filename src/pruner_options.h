@@ -12,11 +12,11 @@ class PrunerOptions : public CompilerOptions {
  public:
     PrunerOptions();
     // output file
-    cstring o_file = nullptr;
+    cstring config_file = nullptr;
+    cstring validation_bin = nullptr;
+    cstring working_dir = "pruned/";
     bool emit_p4 = false;
-    // input file is in CompilerOptions file
     bool do_rnd_prune = false;
-    cstring validator_script = nullptr;
     bool print_pruned = false;
     cstring seed;
 };
