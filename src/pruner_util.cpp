@@ -30,8 +30,6 @@ double get_rnd_pct() {
     return distribution(rng);
 }
 
-
-
 bool file_exists(cstring file_path) {
     struct stat buffer;
     INFO("Checking if " << file_path << " exists.");
@@ -87,6 +85,9 @@ int get_exit_code(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     command += " -ll CRITICAL ";
     command += " -p ";
     command += pruner_conf.compiler;
+    if (pruner_conf.allow_undef) {
+        command += " -u ";
+    }
     return WEXITSTATUS(system(command.c_str()));
 }
 

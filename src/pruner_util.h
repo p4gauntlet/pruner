@@ -22,10 +22,11 @@ struct PrunerConfig {
     cstring compiler;
     cstring working_dir;
     cstring out_file_name;
+    bool allow_undef;
     PrunerConfig()
         : exit_code(0), validation_bin(nullptr), prog_before{nullptr},
           prog_post(nullptr), compiler(nullptr), working_dir(nullptr),
-          out_file_name(nullptr) {}
+          out_file_name(nullptr), allow_undef(false) {}
 };
 
 void set_seed(int64_t seed);

@@ -60,6 +60,7 @@ P4PRUNER::PrunerConfig get_config(P4PRUNER::PrunerOptions options) {
     pruner_conf.prog_before = cstring(config_json.at("prog_before"));
     pruner_conf.prog_post = cstring(config_json.at("prog_after"));
     pruner_conf.working_dir = options.working_dir;
+    pruner_conf.allow_undef = config_json.at("allow_undef");
     // also store the new output name
     // TODO(fruffy): Make this an option
     cstring output_name = P4PRUNER::remove_extension(options.file);
