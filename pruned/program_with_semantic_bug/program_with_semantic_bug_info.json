@@ -1,0 +1,11 @@
+{
+  "allow_undef": false,
+  "compiler": "/home/roborobo/projects/gauntlet_paper/gauntlet/src/../modules/p4c/build/p4test",
+  "exit_code": 20,
+  "input_file": "/home/roborobo/projects/gauntlet_paper/gauntlet/modules/pruner/example_programs/program_with_semantic_bug.p4",
+  "out_dir": "pruned/program_with_semantic_bug",
+  "p4z3_bin": "/home/roborobo/projects/gauntlet_paper/gauntlet/src/../modules/p4c/build/p4toz3",
+  "prog_after": "pruned/program_with_semantic_bug/program_with_semantic_bug-FrontEnd_45_Inline",
+  "prog_before": "pruned/program_with_semantic_bug/program_with_semantic_bug-FrontEnd_42_RemoveAllUnusedDeclarations",
+  "validation_bin": "python3 /home/roborobo/projects/gauntlet_paper/gauntlet/bin/../src/validate_p4_translation.py"
+}

@@ -12,14 +12,15 @@
 #include "expression_pruner.h"
 #include "pruner_options.h"
 #include "pruner_util.h"
+#include "replace_variables.h"
 #include "statement_pruner.h"
-
 const IR::P4Program *prune(const IR::P4Program *program,
                            P4PRUNER::PrunerConfig pruner_conf) {
-    program = P4PRUNER::prune_statements(program, pruner_conf);
-    program = P4PRUNER::prune_expressions(program, pruner_conf);
-    program = P4PRUNER::prune_bool_expressions(program, pruner_conf);
-    program = P4PRUNER::apply_compiler_passes(program, pruner_conf);
+    // program = P4PRUNER::prune_statements(program, pruner_conf);
+    // program = P4PRUNER::prune_expressions(program, pruner_conf);
+    // program = P4PRUNER::prune_bool_expressions(program, pruner_conf);
+    // program = P4PRUNER::apply_compiler_passes(program, pruner_conf);
+    program = P4PRUNER::replace_variables(program, pruner_conf);
     return program;
 }
 
@@ -62,7 +63,7 @@ P4PRUNER::PrunerConfig get_config(P4PRUNER::PrunerOptions options) {
     pruner_conf.working_dir = options.working_dir;
     pruner_conf.allow_undef = config_json.at("allow_undef");
     // also store the new output name
-    // TODO(fruffy): Make this an option
+    // TODO(fruffy): Make this an ;option
     cstring output_name = P4PRUNER::remove_extension(options.file);
     output_name += "_stripped.p4";
     pruner_conf.out_file_name = output_name;
