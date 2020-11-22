@@ -45,8 +45,6 @@ const IR::P4Program *apply_replace(const IR::P4Program *program,
     std::initializer_list<Visitor *> passes;
 
     PassManager pass_manager(passes);
-    // FIXME: This gives : Cannot find declaration for T
-    //                      void extract<T>(out T hdr);
 
     if (not has_applied) {
         pass_manager.addPasses(
@@ -56,7 +54,8 @@ const IR::P4Program *apply_replace(const IR::P4Program *program,
              new P4::TypeInference(&refMap, &typeMap, false)});
     } else {
         pass_manager.addPasses(
-            {new P4::ResolveReferences(&refMap, true), new P4::TypeInference(&refMap, &typeMap, false)});
+            {new P4::ResolveReferences(&refMap, true),
+             new P4::TypeInference(&refMap, &typeMap, false)});
         if (&typeMap != nullptr) {
             pass_manager.addPasses({new P4::ClearTypeMap(&typeMap)});
         }
@@ -69,33 +68,28 @@ const IR::P4Program *apply_replace(const IR::P4Program *program,
     temp = temp->apply(*replacer);
 
     return temp;
-} // namespace P4PRUNER
-
+}
 const IR::P4Program *replace_variables(const IR::P4Program *program,
-                                       P4PRUNER::PrunerConfig pruner_conf) {
+                                       P4PRUNER::PrunerConfig pruner_conf,
+                                       bool genericPassesApplied) {
     int same_before_pruning = 0;
     int result;
     auto prev_action = P4CContext::get().getDefaultWarningDiagnosticAction();
     auto action = DiagnosticAction::Ignore;
     P4CContext::get().setDefaultWarningDiagnosticAction(action);
-    bool has_applied = false;
+    // bool has_applied = false;
 
     INFO("Replacing variables with literals");
     for (int i = 0; i < 5; i++) {
         auto temp = program;
 
-        if (i == 0)
-            temp = apply_replace(temp, pruner_conf, has_applied);
-
-        else
-            temp = apply_replace(temp, pruner_conf, has_applied);
+        temp = apply_replace(temp, pruner_conf, genericPassesApplied);
 
         result = check_pruned_program(&program, temp, pruner_conf);
 
         if (result != EXIT_SUCCESS) {
             same_before_pruning++;
         } else {
-            has_applied = true;
             // successful run, reset short-circuit
             program = temp;
             same_before_pruning = 0;

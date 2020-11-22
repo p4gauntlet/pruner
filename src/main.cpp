@@ -16,11 +16,10 @@
 #include "statement_pruner.h"
 const IR::P4Program *prune(const IR::P4Program *program,
                            P4PRUNER::PrunerConfig pruner_conf) {
-    // program = P4PRUNER::prune_statements(program, pruner_conf);
-    // program = P4PRUNER::prune_expressions(program, pruner_conf);
-    // program = P4PRUNER::prune_bool_expressions(program, pruner_conf);
-    // program = P4PRUNER::apply_compiler_passes(program, pruner_conf);
-    program = P4PRUNER::replace_variables(program, pruner_conf);
+    program = P4PRUNER::prune_statements(program, pruner_conf);
+    program = P4PRUNER::prune_expressions(program, pruner_conf);
+    program = P4PRUNER::prune_bool_expressions(program, pruner_conf);
+    program = P4PRUNER::apply_compiler_passes(program, pruner_conf);
     return program;
 }
 

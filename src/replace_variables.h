@@ -25,11 +25,11 @@ class ReplaceVariables : public Transform {
 
     const IR::Node *postorder(IR::Expression *s);
     const IR::Node *postorder(IR::MethodCallExpression *s);
-
 };
 
 const IR::P4Program *replace_variables(const IR::P4Program *program,
-                                       P4PRUNER::PrunerConfig pruner_conf);
+                                       P4PRUNER::PrunerConfig pruner_conf,
+                                       bool applied);
 
 } // namespace P4PRUNER
 
