@@ -76,8 +76,8 @@ const IR::P4Program *apply_compiler_passes(const IR::P4Program *program,
     program = apply_generic_passes(program, pruner_conf, &genericPassesApplied);
 
     if (!genericPassesApplied) {
-        INFO("Generic passes failes, exiting compiler pruner phase");
-        exit(1);
+        INFO("Generic passes failed, aborting compiler pruner phase");
+        return program;
     }
     program = apply_replace_vars(program, pruner_conf);
     program = apply_unused_decls(program, pruner_conf);
