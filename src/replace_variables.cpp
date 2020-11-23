@@ -18,7 +18,7 @@ const IR::Node *ReplaceVariables::postorder(IR::MethodCallExpression *s) {
 }
 const IR::Node *ReplaceVariables::postorder(IR::Expression *s) {
     auto expr = getOriginal<IR::Expression>();
-    auto type = typeMap->getType((const IR::Node *)expr, true);
+    auto type = typeMap->getType(expr, true);
 
     if (typeMap->isLeftValue(expr)) {
         return s;
@@ -27,17 +27,14 @@ const IR::Node *ReplaceVariables::postorder(IR::Expression *s) {
 
     auto decision = get_rnd_pct();
     if (decision < 0.5 && type->is<IR::Type_Bits>()) {
-        // INFO(s);
         auto new_elt = new IR::Constant(new IR::Type_Bits(bits, false), 10);
-        // INFO("Replacing " << s << " with " << new_elt);
         return new_elt;
     }
     return s;
 }
 
 const IR::P4Program *apply_replace(const IR::P4Program *program,
-                                   P4PRUNER::PrunerConfig pruner_conf,
-                                   bool has_applied) {
+                                   P4PRUNER::PrunerConfig pruner_conf) {
     P4::ReferenceMap refMap;
     P4::TypeMap typeMap;
     const IR::P4Program *temp;
@@ -46,20 +43,12 @@ const IR::P4Program *apply_replace(const IR::P4Program *program,
 
     PassManager pass_manager(passes);
 
-    if (not has_applied) {
-        pass_manager.addPasses(
-            {new P4::CreateBuiltins(), new P4::ResolveReferences(&refMap, true),
-             new P4::ConstantFolding(&refMap, nullptr),
-             new P4::InstantiateDirectCalls(&refMap),
-             new P4::TypeInference(&refMap, &typeMap, false)});
-    } else {
-        pass_manager.addPasses(
-            {new P4::ResolveReferences(&refMap, true),
-             new P4::TypeInference(&refMap, &typeMap, false)});
-        if (&typeMap != nullptr) {
-            pass_manager.addPasses({new P4::ClearTypeMap(&typeMap)});
-        }
-    }
+    pass_manager.addPasses({new P4::ResolveReferences(&refMap, true),
+                            new P4::TypeInference(&refMap, &typeMap, false)});
+
+    // if (&typeMap != nullptr) {
+    //     pass_manager.addPasses({new P4::ClearTypeMap(&typeMap)});
+    // }
 
     temp = program->apply(pass_manager);
 
@@ -70,20 +59,18 @@ const IR::P4Program *apply_replace(const IR::P4Program *program,
     return temp;
 }
 const IR::P4Program *replace_variables(const IR::P4Program *program,
-                                       P4PRUNER::PrunerConfig pruner_conf,
-                                       bool genericPassesApplied) {
+                                       P4PRUNER::PrunerConfig pruner_conf) {
     int same_before_pruning = 0;
     int result;
     auto prev_action = P4CContext::get().getDefaultWarningDiagnosticAction();
     auto action = DiagnosticAction::Ignore;
     P4CContext::get().setDefaultWarningDiagnosticAction(action);
-    // bool has_applied = false;
 
     INFO("Replacing variables with literals");
     for (int i = 0; i < 5; i++) {
         auto temp = program;
 
-        temp = apply_replace(temp, pruner_conf, genericPassesApplied);
+        temp = apply_replace(temp, pruner_conf);
 
         result = check_pruned_program(&program, temp, pruner_conf);
 

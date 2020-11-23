@@ -35,11 +35,9 @@ const IR::P4Program *apply_generic_passes(const IR::P4Program *program,
 }
 
 const IR::P4Program *apply_replace_vars(const IR::P4Program *program,
-                                        P4PRUNER::PrunerConfig pruner_conf,
-                                        bool genericPassesApplied) {
+                                        P4PRUNER::PrunerConfig pruner_conf) {
     INFO("Replacing variables...");
-    const IR::P4Program *temp =
-        replace_variables(program, pruner_conf, genericPassesApplied);
+    const IR::P4Program *temp = replace_variables(program, pruner_conf);
     emit_p4_program(temp, pruner_conf.out_file_name);
     check_pruned_program(&program, temp, pruner_conf);
 
@@ -47,8 +45,7 @@ const IR::P4Program *apply_replace_vars(const IR::P4Program *program,
 }
 
 const IR::P4Program *apply_unused_decls(const IR::P4Program *program,
-                                        P4PRUNER::PrunerConfig pruner_conf,
-                                        bool applied) {
+                                        P4PRUNER::PrunerConfig pruner_conf) {
     P4::ReferenceMap refMap;
     P4::TypeMap typeMap;
     const IR::P4Program *temp;
@@ -56,21 +53,13 @@ const IR::P4Program *apply_unused_decls(const IR::P4Program *program,
     std::initializer_list<Visitor *> passes;
     PassManager pass_manager(passes);
 
-    if (not applied) {
-        pass_manager.addPasses({new P4::CreateBuiltins(),
-                                new P4::ResolveReferences(&refMap, true),
-                                new P4::ConstantFolding(&refMap, nullptr),
-                                new P4::InstantiateDirectCalls(&refMap),
-                                new P4::TypeInference(&refMap, &typeMap, false),
-                                new ExtendedUnusedDeclarations(&refMap)});
-    } else {
-        pass_manager.addPasses({new ExtendedUnusedDeclarations(&refMap)});
+    pass_manager.addPasses({new ExtendedUnusedDeclarations(&refMap)});
 
-        INFO("Applying custom RemoveAllUnusedDeclarations...");
-        temp = program->apply(pass_manager);
-        emit_p4_program(temp, pruner_conf.out_file_name);
-        check_pruned_program(&program, temp, pruner_conf);
-    }
+    INFO("Applying custom RemoveAllUnusedDeclarations...");
+    temp = program->apply(pass_manager);
+    emit_p4_program(temp, pruner_conf.out_file_name);
+    check_pruned_program(&program, temp, pruner_conf);
+
     return program;
 }
 
@@ -85,8 +74,13 @@ const IR::P4Program *apply_compiler_passes(const IR::P4Program *program,
     bool genericPassesApplied = false;
     // apply the compiler passes
     program = apply_generic_passes(program, pruner_conf, &genericPassesApplied);
-    program = apply_replace_vars(program, pruner_conf, genericPassesApplied);
-    program = apply_unused_decls(program, pruner_conf, genericPassesApplied);
+
+    if (!genericPassesApplied) {
+        INFO("Generic passes failes, exiting compiler pruner phase");
+        exit(1);
+    }
+    program = apply_replace_vars(program, pruner_conf);
+    program = apply_unused_decls(program, pruner_conf);
 
     // reset to previous warning
     P4CContext::get().setDefaultWarningDiagnosticAction(prev_action);
