@@ -1,0 +1,117 @@
+example_programs/program_with_crash_bug.p4(118): [--Wwarn=mismatch] warning: 1715977135: value does not fit in 1 bits
+    const bit<4> CouXLc = 2w2 ++ (2w2 |-| ((bit<1>)1715977135 ++ 1w1));
+                                                   ^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(140): [--Wwarn=mismatch] warning: -462561291: negative value with unsigned type
+    XLKWFm = 128w151630996350861975604840755397778695756 |+| ((true ? XLKWFm : (bit<128>)-462561291) & 128w64390379847042167802348032641328204362 & 128w225416248689024205706325460120293928828);
+                                                                                          ^^^^^^^^^
+example_programs/program_with_crash_bug.p4(144): [--Wwarn=mismatch] warning: 245530320509338792831454871222366520334: value does not fit in 8 bits
+    XLKWFm = 128w195723486736805152967797221856433119616 + ((bit<237>)XLKWFm)[150:23] | XLKWFm << (bit<8>)128w245530320509338792831454871222366520334;
+                                                                                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(145): [--Wwarn=mismatch] warning: 161957896949600995184956578615822677969: value does not fit in 8 bits
+    XLKWFm = ~(XLKWFm << (bit<8>)128w161957896949600995184956578615822677969) >> (bit<8>)~(bit<128>)406993746;
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(145): [--Wwarn=mismatch] warning: 340282366920938463463374607431361217709: value does not fit in 8 bits
+    XLKWFm = ~(XLKWFm << (bit<8>)128w161957896949600995184956578615822677969) >> (bit<8>)~(bit<128>)406993746;
+                                                                                                    ^^^^^^^^^
+example_programs/program_with_crash_bug.p4(146): [--Wwarn=mismatch] warning: -1246699803: negative value with unsigned type
+    const bit<64> azrMSD = --248128496 ^ 1617945899 ^ -619374530;
+                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(150): [--Wwarn=mismatch] warning: 3230087843: value does not fit in 1 bits
+    IyUMff lyGfSL = { 64w14646742205442390075, -((bit<1>)(1523439996 + 1706647847) >> (bit<8>)1w1) ++ 7w91, (bit<64>)EAYWUhe(), -289759400 + 8w251, (!!true ? (bit<16>)hdr.eth_hdr.eth_type << (bit<8>)hdr.eth_hdr.eth_type : 16w17107) };
+                                                          ^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(150): [--Wwarn=mismatch] warning: -289759400: negative value with unsigned type
+    IyUMff lyGfSL = { 64w14646742205442390075, -((bit<1>)(1523439996 + 1706647847) >> (bit<8>)1w1) ++ 7w91, (bit<64>)EAYWUhe(), -289759400 + 8w251, (!!true ? (bit<16>)hdr.eth_hdr.eth_type << (bit<8>)hdr.eth_hdr.eth_type : 16w17107) };
+                                                                                                                                 ^^^^^^^^^
+example_programs/program_with_crash_bug.p4(152): [--Wwarn=mismatch] warning: -4292810317: negative value with unsigned type
+    bool NMgItq = (-1500525708 ^ 2095320574 + 701174985 | 128w166388468211950063342697037364624433834) - 128w92667847103704233341006025283633619 != 128w129924069652025881482255523549234865922;
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(181): [--Wwarn=mismatch] warning: -1179293686: negative value with unsigned type
+        h.PDgT.vZLj = (bit<8>)((false ? RGxknB : 8w109) & 8w140 - -1179293686);
+                                                                   ^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(220): [--Wwarn=mismatch] warning: 163785580257696162865650566680302278663: value does not fit in 8 bits
+            (!false ? (bit<128>)128w286654766190982584181051055716011439465 : 128w108474286064519255973305751809460190849) << (bit<8>)~128w176496786663242300597724040751465932792: exact @name("HJWGwR") ;
+                                                                                                                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(220): [--Wwarn=mismatch] warning: 36691810072445770775174535131649464251520: value does not fit in 128 bits
+            (!false ? (bit<128>)128w286654766190982584181051055716011439465 : 128w108474286064519255973305751809460190849) << (bit<8>)~128w176496786663242300597724040751465932792: exact @name("HJWGwR") ;
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(240): [--Wwarn=mismatch] warning: -2175845256: negative value with unsigned type
+                UMFwzW = (UzOYhY ? (bit<128>)(-680583116 + -1495262140) >> (bit<8>)(bit<128>)meduGUf() : 128w14976564858660292608174553918912860770);
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(248): [--Wwarn=mismatch] warning: -1258681629: negative value with unsigned type
+                        RGxknB = -1258681629 | 8w171;
+                                  ^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(48): [--Wwarn=mismatch] warning: 1040699008: value does not fit in 8 bits
+    bit<8> jzBHNx = 1040699008;
+                    ^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(56): [--Wwarn=overflow] warning: <<: shifting value with 8 bits by 247
+        bit<8> PBsUls = jzBHNx << (bit<8>)111w420896023139788658949075859254956[77:70];
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(67): [--Wwarn=overflow] warning: >>: shifting value with 8 bits by 198
+        jzBHNx = (124w2039823832023441422548071825604831186 != 124w11840598612005879397085707546334385740 ^ (bit<124>)ZUvr ? 8w187 : jzBHNx >> (bit<8>)109w241085140210721891760862805387123[39:32]);
+                                                                                                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(82): [--Wwarn=ignore-prop] warning: KeyElement: constant key element
+            ZUvr + 16w13385 |+| 16w1895: exact @name("qWSzlT") ;
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(83): [--Wwarn=ignore-prop] warning: KeyElement: constant key element
+            16w65440 : exact @name("rAAcxh") ;
+            ^^^^^^^^
+example_programs/program_with_crash_bug.p4(96): [--Wwarn=mismatch] warning: 1083367035: value does not fit in 4 bits
+            bit<4> wEJGXp = -((-478411504 + 803950701 & 1532635101) - 1406460888);
+                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(107): [--Wwarn=mismatch] warning: 32092171: value does not fit in 4 bits
+            Etdon(NwQqEz, 32092171);
+                          ^^^^^^^^
+example_programs/program_with_crash_bug.p4(127): [--Wwarn=mismatch] warning: -1970135477: negative value with unsigned type
+    uPHOdD = -1970135477;
+              ^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(145): [--Wwarn=overflow] warning: <<: shifting value with 128 bits by 209
+    XLKWFm = ~(XLKWFm << (bit<8>)128w161957896949600995184956578615822677969) >> (bit<8>)~(bit<128>)406993746;
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(145): [--Wwarn=overflow] warning: >>: shifting value with 128 bits by 173
+    XLKWFm = ~(XLKWFm << (bit<8>)128w161957896949600995184956578615822677969) >> (bit<8>)~(bit<128>)406993746;
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(189): [--Wwarn=mismatch] warning: -1275595009: negative value with unsigned type
+        h.eth_hdr.eth_type = -1298663788 | -90061036 + -1227940517;
+                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(203): [--Wwarn=ignore-prop] warning: KeyElement: constant key element
+            48w246571842009697: exact @name("jTEtUE") ;
+            ^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(204): [--Wwarn=ignore-prop] warning: KeyElement: constant key element
+            32w3934660164 : exact @name("gPyPkH") ;
+            ^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(212): [--Wwarn=ignore-prop] warning: KeyElement: constant key element
+            128w319016713157177349707501011233657808475: exact @name("jDiXrc") ;
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(220): [--Wwarn=ignore-prop] warning: KeyElement: constant key element
+            (!false ? (bit<128>)128w286654766190982584181051055716011439465 : 128w108474286064519255973305751809460190849) << (bit<8>)~128w176496786663242300597724040751465932792: exact @name("HJWGwR") ;
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(259): [--Wwarn=mismatch] warning: 978145479: value does not fit in 8 bits
+                        h.PDgT.vZLj = 978145479;
+                                      ^^^^^^^^^
+example_programs/program_with_crash_bug.p4(171): [--Wwarn=unused] warning: ihDZFr: unused instance
+    uCvKhOG() ihDZFr;
+              ^^^^^^
+example_programs/program_with_crash_bug.p4(172): [--Wwarn=unused] warning: KMPAdH: unused instance
+    uCvKhOG() KMPAdH;
+              ^^^^^^
+example_programs/program_with_crash_bug.p4(173): [--Wwarn=unused] warning: OJBTfb: unused instance
+    uCvKhOG() OJBTfb;
+              ^^^^^^
+example_programs/program_with_crash_bug.p4(210): [--Wwarn=unused] warning: Table getttc is not used; removing
+    table getttc {
+          ^^^^^^
+example_programs/program_with_crash_bug.p4(117): [--Wwarn=uninitialized_use] warning: Cggr may be uninitialized
+    Cggr = Cggr;
+           ^^^^
+example_programs/program_with_crash_bug.p4(150): [--Wwarn=uninitialized_use] warning: hdr.eth_hdr.eth_type may be uninitialized
+    IyUMff lyGfSL = { 64w14646742205442390075, -((bit<1>)(1523439996 + 1706647847) >> (bit<8>)1w1) ++ 7w91, (bit<64>)EAYWUhe(), -289759400 + 8w251, (!!true ? (bit<16>)hdr.eth_hdr.eth_type << (bit<8>)hdr.eth_hdr.eth_type : 16w17107) };
+                                                                                                                                                                       ^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(150): [--Wwarn=uninitialized_use] warning: hdr.eth_hdr.eth_type may be uninitialized
+    IyUMff lyGfSL = { 64w14646742205442390075, -((bit<1>)(1523439996 + 1706647847) >> (bit<8>)1w1) ++ 7w91, (bit<64>)EAYWUhe(), -289759400 + 8w251, (!!true ? (bit<16>)hdr.eth_hdr.eth_type << (bit<8>)hdr.eth_hdr.eth_type : 16w17107) };
+                                                                                                                                                                                                       ^^^^^^^^^^^^^^^^^^^^
+example_programs/program_with_crash_bug.p4(178): [--Wwarn=uninitialized_use] warning: JCQk may be uninitialized
+        JCQk = (bit<32>)JCQk;
+                        ^^^^
+In file: /home/roborobo/projects/gauntlet_paper/gauntlet/modules/p4c/frontends/p4/functionsInlining.cpp:41
+[31mCompiler Bug[0m: /home/roborobo/projects/gauntlet_paper/gauntlet/modules/p4c/frontends/p4/functionsInlining.cpp:41: Null stat
+

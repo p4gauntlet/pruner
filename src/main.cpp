@@ -149,6 +149,9 @@ int main(int argc, char *const argv[]) {
 
     if (program != nullptr && ::errorCount() == 0) {
         auto original = program;
+        if (is_crash_bug(options.file, pruner_conf)) {
+            exit(0);
+        }
         program = prune(program, pruner_conf);
         if (options.print_pruned) {
             P4PRUNER::print_p4_program(program);

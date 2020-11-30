@@ -91,6 +91,55 @@ int get_exit_code(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     return WEXITSTATUS(system(command.c_str()));
 }
 
+cstring get_error_string(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
+    cstring command = pruner_conf.compiler;
+    command += " ";
+    command += name;
+    // Apparently popen doesn't like stderr hence redirecting stderr to stdout
+    command += " 2>&1";
+
+    char buffer[128];
+    cstring result = "";
+    FILE *pipe = popen(command, "r");
+
+    try {
+        while (fgets(buffer, sizeof buffer, pipe) != NULL) {
+            result += buffer;
+        }
+    } catch (...) {
+        pclose(pipe);
+        throw;
+    }
+    pclose(pipe);
+    return result;
+}
+
+bool is_crash_bug(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
+    INFO("Checking if this is a crash bug");
+
+    cstring command = pruner_conf.compiler;
+    command += " ";
+    command += name;
+    command += " 2>\\dev\\null";
+    int out = WEXITSTATUS(system(command));
+    if (out == 1) {
+        cstring err_string = get_error_string(name, pruner_conf);
+        // INFO(err_string);
+        cstring err_comp = err_string.find("Compiler Bug");
+        cstring err_msg = err_string.find("error");
+        if (!err_comp.isNullOrEmpty()) {
+            INFO("Compiler Bug");
+            return true;
+        } else if (!err_msg.isNullOrEmpty()) {
+            INFO("Error message");
+            return false;
+        }
+    } else {
+        INFO("Semantic Bug");
+        return false;
+    }
+}
+
 void emit_p4_program(const IR::P4Program *program, cstring prog_name) {
     auto temp_f = new std::ofstream(prog_name);
     P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);

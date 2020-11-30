@@ -39,7 +39,10 @@ void remove_file(cstring file_path);
 cstring remove_extension(cstring file_path);
 cstring get_file_stem(cstring file_path);
 
+cstring get_error_string(cstring name, P4PRUNER::PrunerConfig pruner_conf);
+bool is_crash_bug(cstring name, P4PRUNER::PrunerConfig pruner_conf);
 int get_exit_code(cstring name, P4PRUNER::PrunerConfig pruner_conf);
+
 void emit_p4_program(const IR::P4Program *program, cstring prog_name);
 void print_p4_program(const IR::P4Program *program);
 
