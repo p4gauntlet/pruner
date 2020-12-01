@@ -75,25 +75,30 @@ cstring remove_extension(cstring file_path) {
 
 int get_exit_code(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     INFO("Checking exit code.");
-    cstring command = pruner_conf.validation_bin;
-    // suppress output
-    command += " -i ";
-    command += name;
-    // set the output dir
-    command += " -o ";
-    command += pruner_conf.working_dir;
-    command += " -ll CRITICAL ";
-    command += " -p ";
-    command += pruner_conf.compiler;
-    if (pruner_conf.allow_undef) {
-        command += " -u ";
+    if (pruner_conf.err_type == ErrorType::SemanticBug) {
+        cstring command = pruner_conf.validation_bin;
+        // suppress output
+        command += " -i ";
+        command += name;
+        // set the output dir
+        command += " -o ";
+        command += pruner_conf.working_dir;
+        command += " -ll CRITICAL ";
+        command += " -p ";
+        command += pruner_conf.compiler;
+        if (pruner_conf.allow_undef) {
+            command += " -u ";
+        }
+        return WEXITSTATUS(system(command.c_str()));
+    } else {
+        return get_exit_details(name, pruner_conf);
     }
-    return WEXITSTATUS(system(command.c_str()));
 }
 
-cstring get_error_string(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
+int get_exit_details(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
+    // The crash bugs variant of get_exit_code
     cstring command = pruner_conf.compiler;
-    command += " ";
+    command += " --Wdisable ";
     command += name;
     // Apparently popen doesn't like stderr hence redirecting stderr to stdout
     command += " 2>&1";
@@ -110,33 +115,29 @@ cstring get_error_string(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
         pclose(pipe);
         throw;
     }
-    pclose(pipe);
-    return result;
+    pruner_conf.err_string = result;
+    return WEXITSTATUS(pclose(pipe));
 }
 
-bool is_crash_bug(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
-    INFO("Checking if this is a crash bug");
+ErrorType classify_bug(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
+    int exit_code = get_exit_details(name, pruner_conf);
 
-    cstring command = pruner_conf.compiler;
-    command += " ";
-    command += name;
-    command += " 2>\\dev\\null";
-    int out = WEXITSTATUS(system(command));
-    if (out == 1) {
-        cstring err_string = get_error_string(name, pruner_conf);
-        // INFO(err_string);
-        cstring err_comp = err_string.find("Compiler Bug");
-        cstring err_msg = err_string.find("error");
-        if (!err_comp.isNullOrEmpty()) {
-            INFO("Compiler Bug");
-            return true;
-        } else if (!err_msg.isNullOrEmpty()) {
-            INFO("Error message");
-            return false;
+    if (exit_code == 20) {
+        return ErrorType::SemanticBug;
+    } else if (exit_code == 1) {
+        cstring comp = pruner_conf.err_string.find("Compiler Bug");
+
+        if (!comp.isNullOrEmpty()) {
+            return ErrorType::CrashBug;
         }
+        cstring err_msg = pruner_conf.err_string.find("error");
+
+        if (!err_msg.isNullOrEmpty()) {
+            return ErrorType::Error;
+        }
+        return ErrorType::Unknown;
     } else {
-        INFO("Semantic Bug");
-        return false;
+        return ErrorType::Unknown;
     }
 }
 

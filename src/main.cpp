@@ -61,6 +61,8 @@ P4PRUNER::PrunerConfig get_config(P4PRUNER::PrunerOptions options) {
     pruner_conf.prog_post = cstring(config_json.at("prog_after"));
     pruner_conf.working_dir = options.working_dir;
     pruner_conf.allow_undef = config_json.at("allow_undef");
+    pruner_conf.err_string = cstring(config_json.at("err_string"));
+    pruner_conf.err_type = config_json.at("err_type");
     // also store the new output name
     // TODO(fruffy): Make this an option
     cstring output_name = P4PRUNER::remove_extension(options.file);
@@ -149,9 +151,7 @@ int main(int argc, char *const argv[]) {
 
     if (program != nullptr && ::errorCount() == 0) {
         auto original = program;
-        if (is_crash_bug(options.file, pruner_conf)) {
-            exit(0);
-        }
+        pruner_conf.err_type = classify_bug(options.file, pruner_conf);
         program = prune(program, pruner_conf);
         if (options.print_pruned) {
             P4PRUNER::print_p4_program(program);

@@ -7,5 +7,7 @@
     "p4z3_bin": "",
     "prog_after": "",
     "prog_before": "",
-    "validation_bin": ""
+    "validation_bin": "",
+    "err_string": "",
+    "err_type": 3
 }
