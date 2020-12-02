@@ -2,12 +2,12 @@
     "allow_undef": false,
     "compiler": "/home/roborobo/projects/gauntlet_paper/gauntlet/modules/p4c/build/p4test",
     "exit_code": 1,
-    "input_file": "program_with_crash_bug.p4",
-    "out_dir": "/home/roborobo/projects/gauntlet_paper/gauntlet/validated/program_with_crash_bug",
+    "input_file": "program_with_crash_bug.json",
+    "out_dir": "/home/roborobo/projects/gauntlet_paper/gauntlet/modules/pruner",
     "p4z3_bin": "",
     "prog_after": "",
     "prog_before": "",
     "validation_bin": "",
-    "err_string": "",
-    "err_type": 3
+    "err_type": 0,
+    "err_string": ""
 }

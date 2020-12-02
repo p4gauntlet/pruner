@@ -73,7 +73,8 @@ cstring remove_extension(cstring file_path) {
     return file_path.substr(0, idx);
 }
 
-int get_exit_code(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
+ExitInfo get_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
+    ExitInfo exit_info;
     INFO("Checking exit code.");
     if (pruner_conf.err_type == ErrorType::SemanticBug) {
         cstring command = pruner_conf.validation_bin;
@@ -89,21 +90,26 @@ int get_exit_code(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
         if (pruner_conf.allow_undef) {
             command += " -u ";
         }
-        return WEXITSTATUS(system(command.c_str()));
+
+        exit_info.exit_code = WEXITSTATUS(system(command.c_str()));
+        exit_info.err_msg = cstring("");
+
     } else {
-        return get_exit_details(name, pruner_conf);
+        exit_info = get_crash_exit_info(name, pruner_conf);
     }
+    return exit_info;
 }
 
-int get_exit_details(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
+ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     // The crash bugs variant of get_exit_code
+    ExitInfo exit_info;
     cstring command = pruner_conf.compiler;
     command += " --Wdisable ";
     command += name;
     // Apparently popen doesn't like stderr hence redirecting stderr to stdout
     command += " 2>&1";
 
-    char buffer[128];
+    char buffer[1000];
     cstring result = "";
     FILE *pipe = popen(command, "r");
 
@@ -115,27 +121,30 @@ int get_exit_details(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
         pclose(pipe);
         throw;
     }
-    pruner_conf.err_string = result;
-    return WEXITSTATUS(pclose(pipe));
+    exit_info.exit_code = WEXITSTATUS(pclose(pipe));
+    exit_info.err_msg = result;
+    return exit_info;
 }
 
-ErrorType classify_bug(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
-    int exit_code = get_exit_details(name, pruner_conf);
+ErrorType classify_bug(ExitInfo exit_info) {
+    int exit_code = exit_info.exit_code;
 
-    if (exit_code == 20) {
+    if (exit_code == EXIT_TEST_VALIDATION) {
         return ErrorType::SemanticBug;
-    } else if (exit_code == 1) {
-        cstring comp = pruner_conf.err_string.find("Compiler Bug");
+    } else if (exit_code == EXIT_TEST_FAILURE) {
+        cstring comp = exit_info.err_msg.find("Compiler Bug");
 
         if (!comp.isNullOrEmpty()) {
             return ErrorType::CrashBug;
         }
-        cstring err_msg = pruner_conf.err_string.find("error");
+        cstring err_msg = exit_info.err_msg.find("error");
 
         if (!err_msg.isNullOrEmpty()) {
             return ErrorType::Error;
         }
         return ErrorType::Unknown;
+    } else if (exit_code == EXIT_TEST_SUCCESS) {
+        return ErrorType::Success;
     } else {
         return ErrorType::Unknown;
     }
@@ -189,7 +198,8 @@ int check_pruned_program(const IR::P4Program **orig_program,
         INFO("File has not changed. Skipping analysis.");
         return EXIT_FAILURE;
     }
-    int exit_code = get_exit_code(pruner_conf.out_file_name, pruner_conf);
+    int exit_code =
+        get_exit_info(pruner_conf.out_file_name, pruner_conf).exit_code;
     // if got the right exit code, then modify the original program, if not
     // then choose a smaller bank of statements to remove now.
     if (exit_code != pruner_conf.exit_code) {
