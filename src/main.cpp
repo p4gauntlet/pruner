@@ -62,7 +62,6 @@ P4PRUNER::PrunerConfig get_config(P4PRUNER::PrunerOptions options) {
     pruner_conf.working_dir = options.working_dir;
     pruner_conf.allow_undef = config_json.at("allow_undef");
     pruner_conf.err_string = cstring(config_json.at("err_string"));
-    pruner_conf.err_type = config_json.at("err_type");
     // also store the new output name
     // TODO(fruffy): Make this an option
     cstring output_name = P4PRUNER::remove_extension(options.file);
@@ -143,6 +142,14 @@ int main(int argc, char *const argv[]) {
         options.usage();
         return EXIT_FAILURE;
     }
+
+    // at this point, all properties should be known
+    P4PRUNER::ExitInfo exit_info;
+    exit_info.exit_code = pruner_conf.exit_code;
+    exit_info.err_msg = pruner_conf.err_string;
+    // this should probably become part of the initial setup later
+    pruner_conf.err_type = P4PRUNER::classify_bug(exit_info);
+
     // if a seed was provided, use it
     // otherwise generate a random seed and set it
     process_seed(options);
@@ -152,14 +159,6 @@ int main(int argc, char *const argv[]) {
     if (program != nullptr && ::errorCount() == 0) {
         auto original = program;
 
-        // FIXME : this doesn't work right now because get_exit_info depends on
-        // pruner_conf.err_type(which depends on get_exit_info)
-
-        P4PRUNER::ExitInfo exit_info =
-            P4PRUNER::get_exit_info(options.file, pruner_conf);
-        pruner_conf.exit_code = exit_info.exit_code;
-        pruner_conf.err_string = exit_info.err_msg;
-        pruner_conf.err_type = P4PRUNER::classify_bug(exit_info);
 
         program = prune(program, pruner_conf);
         if (options.print_pruned) {
