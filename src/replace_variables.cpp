@@ -39,11 +39,7 @@ const IR::P4Program *apply_replace(const IR::P4Program *program,
     P4::TypeMap typeMap;
     const IR::P4Program *temp;
 
-    std::initializer_list<Visitor *> passes;
-
-    PassManager pass_manager(passes);
-
-    pass_manager.addPasses({new P4::ResolveReferences(&refMap, true),
+    PassManager pass_manager({new P4::ResolveReferences(&refMap, true),
                             new P4::TypeInference(&refMap, &typeMap, false)});
 
     temp = program->apply(pass_manager);
