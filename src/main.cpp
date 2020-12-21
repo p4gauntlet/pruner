@@ -43,15 +43,17 @@ void process_seed(P4PRUNER::PrunerOptions options) {
     P4PRUNER::set_seed(seed);
 }
 
-P4PRUNER::PrunerConfig get_config(P4PRUNER::PrunerOptions options) {
-    if (!P4PRUNER::file_exists(options.config_file)) {
-        ::error("Config file %s does not exist! Exiting.", options.config_file);
+P4PRUNER::PrunerConfig get_config_from_json(cstring json_path,
+                                            cstring working_dir,
+                                            cstring input_file) {
+    if (!P4PRUNER::file_exists(json_path)) {
+        ::error("Config file %s does not exist! Exiting.", json_path);
         exit(EXIT_FAILURE);
     }
     P4PRUNER::PrunerConfig pruner_conf;
     nlohmann::json config_json;
 
-    std::ifstream config_file(options.config_file);
+    std::ifstream config_file(json_path);
     config_file >> config_json;
 
     pruner_conf.exit_code = config_json.at("exit_code");
@@ -59,30 +61,38 @@ P4PRUNER::PrunerConfig get_config(P4PRUNER::PrunerOptions options) {
     pruner_conf.validation_bin = cstring(config_json.at("validation_bin"));
     pruner_conf.prog_before = cstring(config_json.at("prog_before"));
     pruner_conf.prog_post = cstring(config_json.at("prog_after"));
-    pruner_conf.working_dir = options.working_dir;
+    pruner_conf.working_dir = working_dir;
     pruner_conf.allow_undef = config_json.at("allow_undef");
     pruner_conf.err_string = cstring(config_json.at("err_string"));
     // also store the new output name
     // TODO(fruffy): Make this an option
-    cstring output_name = P4PRUNER::remove_extension(options.file);
+    cstring output_name = P4PRUNER::remove_extension(input_file);
     output_name += "_stripped.p4";
     pruner_conf.out_file_name = output_name;
     return pruner_conf;
 }
 
-P4PRUNER::PrunerConfig get_config_from_script(P4PRUNER::PrunerOptions options) {
+P4PRUNER::PrunerConfig get_conf_from_script(P4PRUNER::PrunerOptions options) {
     INFO("Grabbing config by using the validation script.");
     if (!P4PRUNER::file_exists(options.validation_bin)) {
-        ::error("Validator Binary %s does not exist! Exiting.",
+        ::error("Path to validator binary %s invalid! Exiting.",
                 options.validation_bin);
         exit(EXIT_FAILURE);
     }
-
+    if (!P4PRUNER::file_exists(options.compiler_bin)) {
+        ::error("Path to compiler binary %s invalid! Exiting.",
+                options.validation_bin);
+        exit(EXIT_FAILURE);
+    }
     // assemble the command to run the validation script to get a config file
     cstring command = "python3 ";
     command += options.validation_bin;
+    // the input
     command += " -i ";
     command += options.file;
+    // the compiler binary
+    command += " -c ";
+    command += options.compiler_bin;
     // suppress output
     command += " -ll CRITICAL ";
     // change the output dir
@@ -98,14 +108,39 @@ P4PRUNER::PrunerConfig get_config_from_script(P4PRUNER::PrunerOptions options) {
     cstring file_stem = P4PRUNER::get_file_stem(options.file);
     // assemble the path for the config file
     // this is not great but we have no other way right now
-    cstring config_file = realpath(options.working_dir, nullptr);
-    config_file += "/";
-    config_file += file_stem;
-    config_file += "/";
-    config_file += file_stem;
-    config_file += "_info.json";
-    options.config_file = config_file;
-    return get_config(options);
+    cstring conf_file = realpath(options.working_dir, nullptr);
+    conf_file += "/";
+    conf_file += file_stem;
+    conf_file += "/";
+    conf_file += file_stem;
+    conf_file += "_info.json";
+    return get_config_from_json(conf_file, options.working_dir, options.file);
+}
+
+P4PRUNER::PrunerConfig get_conf_from_compiler(P4PRUNER::PrunerOptions options) {
+    INFO("Grabbing config by using the compiler binary.");
+    if (!P4PRUNER::file_exists(options.compiler_bin)) {
+        ::error("Path to compiler binary %s invalid! Exiting.",
+                options.validation_bin);
+        exit(EXIT_FAILURE);
+    }
+    P4PRUNER::PrunerConfig pruner_conf;
+
+    // we do not have munch info, so leave most of this empty, we don't need it
+    pruner_conf.compiler = options.compiler_bin;
+    pruner_conf.validation_bin = "";
+    pruner_conf.prog_before = "";
+    pruner_conf.prog_post = "";
+    pruner_conf.working_dir = options.working_dir;
+    pruner_conf.allow_undef = true;
+    cstring output_name = P4PRUNER::remove_extension(options.file);
+    output_name += "_stripped.p4";
+    pruner_conf.out_file_name = output_name;
+    // auto-fill the exit info from running the compiler on it
+    auto exit_info = P4PRUNER::get_exit_info(options.file, pruner_conf);
+    pruner_conf.exit_code = exit_info.exit_code;
+    pruner_conf.err_string = exit_info.err_msg;
+    return pruner_conf;
 }
 
 int main(int argc, char *const argv[]) {
@@ -134,9 +169,16 @@ int main(int argc, char *const argv[]) {
     P4PRUNER::PrunerConfig pruner_conf;
 
     if (options.config_file) {
-        pruner_conf = get_config(options);
-    } else if (options.validation_bin) {
-        pruner_conf = get_config_from_script(options);
+        pruner_conf = get_config_from_json(options.config_file,
+                                           options.working_dir, options.file);
+    } else if (options.compiler_bin && options.validation_bin) {
+        // we are not provided with a config but validation and compiler bin
+        // we should infer the expected output from these first
+        pruner_conf = get_conf_from_script(options);
+    } else if (options.compiler_bin) {
+        // we are not provided with a config but a compiler bin
+        // we should infer the expected output from the compiler bin first
+        pruner_conf = get_conf_from_compiler(options);
     } else {
         ::error("Need to provide either a validation_bin or a config file!");
         options.usage();
@@ -158,7 +200,6 @@ int main(int argc, char *const argv[]) {
 
     if (program != nullptr && ::errorCount() == 0) {
         auto original = program;
-
 
         program = prune(program, pruner_conf);
         if (options.print_pruned) {
