@@ -112,9 +112,26 @@ ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     char buffer[1000];
     cstring result = "";
     FILE *pipe = popen(command, "r");
-
+    bool done = false;
+    char *saveptr = NULL;
+    int newlines = 0;
     try {
-        while (fgets(buffer, sizeof buffer, pipe) != NULL) {
+        while (fgets(buffer, sizeof buffer, pipe) != NULL && !done) {
+            for (int i = 0; i < 1000; i++) {
+                if (buffer[i] == '\n') {
+                    newlines++;
+                    break;
+                    if (newlines > 1) {
+                        // ignoring the first line
+                        strtok_r(buffer, "\n", &saveptr);
+                        result += strtok_r(NULL, "\n", &saveptr);
+
+                        done = true;
+                        break;
+                    }
+                }
+            }
+
             result += buffer;
         }
     } catch (...) {
@@ -123,6 +140,7 @@ ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     }
     exit_info.exit_code = WEXITSTATUS(pclose(pipe));
     exit_info.err_msg = result;
+    INFO(result);
     return exit_info;
 }
 
