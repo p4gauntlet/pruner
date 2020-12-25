@@ -78,12 +78,12 @@ ExitInfo get_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     INFO("Checking exit code.");
     if (pruner_conf.err_type == ErrorType::SemanticBug) {
         cstring command = pruner_conf.validation_bin;
-        // suppress output
         command += " -i ";
         command += name;
         // set the output dir
         command += " -o ";
         command += pruner_conf.working_dir;
+        // suppress output
         command += " -ll CRITICAL ";
         command += " -p ";
         command += pruner_conf.compiler;

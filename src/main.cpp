@@ -91,7 +91,7 @@ P4PRUNER::PrunerConfig get_conf_from_script(P4PRUNER::PrunerOptions options) {
     command += " -i ";
     command += options.file;
     // the compiler binary
-    command += " -c ";
+    command += " -p ";
     command += options.compiler_bin;
     // suppress output
     command += " -ll CRITICAL ";
