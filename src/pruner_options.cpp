@@ -25,6 +25,13 @@ PrunerOptions::PrunerOptions() {
         },
         "Path to the validation python script");
     registerOption(
+        "--compiler-bin", "file",
+        [this](const char *arg) {
+            compiler_bin = arg;
+            return true;
+        },
+        "Path to the compiler binary that is used");
+    registerOption(
         "--working-dir", "file",
         [this](const char *arg) {
             working_dir = arg;

@@ -73,22 +73,99 @@ cstring remove_extension(cstring file_path) {
     return file_path.substr(0, idx);
 }
 
-int get_exit_code(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
+ExitInfo get_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
+    ExitInfo exit_info;
     INFO("Checking exit code.");
-    cstring command = pruner_conf.validation_bin;
-    // suppress output
-    command += " -i ";
-    command += name;
-    // set the output dir
-    command += " -o ";
-    command += pruner_conf.working_dir;
-    command += " -ll CRITICAL ";
-    command += " -p ";
-    command += pruner_conf.compiler;
-    if (pruner_conf.allow_undef) {
-        command += " -u ";
+    if (pruner_conf.err_type == ErrorType::SemanticBug) {
+        cstring command = pruner_conf.validation_bin;
+        command += " -i ";
+        command += name;
+        // set the output dir
+        command += " -o ";
+        command += pruner_conf.working_dir;
+        // suppress output
+        command += " -ll CRITICAL ";
+        command += " -p ";
+        command += pruner_conf.compiler;
+        if (pruner_conf.allow_undef) {
+            command += " -u ";
+        }
+
+        exit_info.exit_code = WEXITSTATUS(system(command.c_str()));
+        exit_info.err_msg = cstring("");
+
+    } else {
+        exit_info = get_crash_exit_info(name, pruner_conf);
     }
-    return WEXITSTATUS(system(command.c_str()));
+    return exit_info;
+}
+
+ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
+    // The crash bugs variant of get_exit_code
+    ExitInfo exit_info;
+    cstring command = pruner_conf.compiler;
+    command += " --Wdisable ";
+    command += name;
+    // Apparently popen doesn't like stderr hence redirecting stderr to stdout
+    command += " 2>&1";
+
+    char buffer[1000];
+    cstring result = "";
+    FILE *pipe = popen(command, "r");
+    bool done = false;
+    char *saveptr = NULL;
+    int newlines = 0;
+    try {
+        while (fgets(buffer, sizeof buffer, pipe) != NULL && !done) {
+            for (int i = 0; i < 1000; i++) {
+                if (buffer[i] == '\n') {
+                    newlines++;
+                    break;
+                    if (newlines > 1) {
+                        // ignoring the first line
+                        strtok_r(buffer, "\n", &saveptr);
+                        result += strtok_r(NULL, "\n", &saveptr);
+
+                        done = true;
+                        break;
+                    }
+                }
+            }
+
+            result += buffer;
+        }
+    } catch (...) {
+        pclose(pipe);
+        throw;
+    }
+    exit_info.exit_code = WEXITSTATUS(pclose(pipe));
+    exit_info.err_msg = result;
+    INFO(result);
+    return exit_info;
+}
+
+ErrorType classify_bug(ExitInfo exit_info) {
+    int exit_code = exit_info.exit_code;
+
+    if (exit_code == EXIT_TEST_VALIDATION) {
+        return ErrorType::SemanticBug;
+    } else if (exit_code == EXIT_TEST_FAILURE) {
+        cstring comp = exit_info.err_msg.find("Compiler Bug");
+
+        if (!comp.isNullOrEmpty()) {
+            return ErrorType::CrashBug;
+        }
+        cstring err_msg = exit_info.err_msg.find("error");
+
+        if (!err_msg.isNullOrEmpty()) {
+            return ErrorType::Error;
+        }
+        return ErrorType::Unknown;
+    } else if (exit_code == EXIT_TEST_SUCCESS) {
+        return ErrorType::Success;
+    } else {
+        return ErrorType::Unknown;
+    }
 }
 
 void emit_p4_program(const IR::P4Program *program, cstring prog_name) {
@@ -139,7 +216,8 @@ int check_pruned_program(const IR::P4Program **orig_program,
         INFO("File has not changed. Skipping analysis.");
         return EXIT_FAILURE;
     }
-    int exit_code = get_exit_code(pruner_conf.out_file_name, pruner_conf);
+    int exit_code =
+        get_exit_info(pruner_conf.out_file_name, pruner_conf).exit_code;
     // if got the right exit code, then modify the original program, if not
     // then choose a smaller bank of statements to remove now.
     if (exit_code != pruner_conf.exit_code) {

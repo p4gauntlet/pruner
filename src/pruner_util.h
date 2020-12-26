@@ -11,8 +11,26 @@
 #define PRUNE_STMT_MAX 100
 #define PRUNE_ITERS 50
 #define NO_CHNG_ITERS 7
+// adding TEST, as it collides with constants defined by cpp.
+#define EXIT_TEST_VALIDATION 20
+#define EXIT_TEST_FAILURE -1
+#define EXIT_TEST_SUCCESS 0
 
 namespace P4PRUNER {
+
+enum class ErrorType : uint32_t {
+    SemanticBug = 0,
+    CrashBug = 1,
+    Error = 2,
+    Unknown = 3,
+    Success = 4
+};
+
+struct ExitInfo {
+    int exit_code;
+    cstring err_msg;
+    ExitInfo() : exit_code(0), err_msg(nullptr) {}
+};
 
 struct PrunerConfig {
     int exit_code;
@@ -22,11 +40,14 @@ struct PrunerConfig {
     cstring compiler;
     cstring working_dir;
     cstring out_file_name;
+    cstring err_string;
     bool allow_undef;
+    ErrorType err_type;
     PrunerConfig()
         : exit_code(0), validation_bin(nullptr), prog_before{nullptr},
           prog_post(nullptr), compiler(nullptr), working_dir(nullptr),
-          out_file_name(nullptr), allow_undef(false) {}
+          out_file_name(nullptr), allow_undef(false), err_string(nullptr),
+          err_type(ErrorType::Unknown) {}
 };
 
 void set_seed(int64_t seed);
@@ -39,7 +60,12 @@ void remove_file(cstring file_path);
 cstring remove_extension(cstring file_path);
 cstring get_file_stem(cstring file_path);
 
+ExitInfo get_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf);
+ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf);
+
+ErrorType classify_bug(ExitInfo exit_info);
 int get_exit_code(cstring name, P4PRUNER::PrunerConfig pruner_conf);
+
 void emit_p4_program(const IR::P4Program *program, cstring prog_name);
 void print_p4_program(const IR::P4Program *program);
 

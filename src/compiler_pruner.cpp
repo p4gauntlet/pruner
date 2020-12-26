@@ -18,11 +18,11 @@ const IR::P4Program *apply_generic_passes(const IR::P4Program *program,
     P4::TypeMap typeMap;
     const IR::P4Program *temp;
 
-    PassManager pass_manager = {
-        new P4::CreateBuiltins(), new P4::ResolveReferences(&refMap, true),
-        new P4::ConstantFolding(&refMap, nullptr),
-        new P4::InstantiateDirectCalls(&refMap),
-        new P4::TypeInference(&refMap, &typeMap, false)};
+    PassManager pass_manager({new P4::CreateBuiltins(),
+                              new P4::ResolveReferences(&refMap, true),
+                              new P4::ConstantFolding(&refMap, nullptr),
+                              new P4::InstantiateDirectCalls(&refMap),
+                              new P4::TypeInference(&refMap, &typeMap, false)});
 
     INFO("Applying Generic passes...");
     temp = program->apply(pass_manager);
@@ -50,10 +50,7 @@ const IR::P4Program *apply_unused_decls(const IR::P4Program *program,
     P4::TypeMap typeMap;
     const IR::P4Program *temp;
 
-    std::initializer_list<Visitor *> passes;
-    PassManager pass_manager(passes);
-
-    pass_manager.addPasses({new ExtendedUnusedDeclarations(&refMap)});
+    PassManager pass_manager({new ExtendedUnusedDeclarations(&refMap)});
 
     INFO("Applying custom RemoveAllUnusedDeclarations...");
     temp = program->apply(pass_manager);
