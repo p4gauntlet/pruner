@@ -63,6 +63,10 @@ cstring get_file_stem(cstring file_path) {
     cstring file_stem;
     cstring stripped_name = P4PRUNER::remove_extension(file_path);
     const char *pos = stripped_name.findlast('/');
+    // check if there even is a parent directory
+    if (!pos) {
+        return file_path;
+    }
     size_t idx = (size_t)(pos - stripped_name);
     if (idx != std::string::npos)
         file_stem = stripped_name.substr(idx + 1);
@@ -222,7 +226,8 @@ double measure_pct(const IR::P4Program *prog_before,
 int check_pruned_program(const IR::P4Program **orig_program,
                          const IR::P4Program *pruned_program,
                          P4PRUNER::PrunerConfig pruner_conf) {
-    cstring out_file = pruner_conf.working_dir + pruner_conf.out_file_name;
+    cstring out_file =
+        pruner_conf.working_dir + get_file_stem(pruner_conf.out_file_name);
     emit_p4_program(pruned_program, out_file);
     if (compare_files(pruned_program, *orig_program)) {
         INFO("File has not changed. Skipping analysis.");

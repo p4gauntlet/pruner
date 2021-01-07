@@ -14,6 +14,7 @@
 #include "pruner_util.h"
 #include "replace_variables.h"
 #include "statement_pruner.h"
+
 const IR::P4Program *prune(const IR::P4Program *program,
                            P4PRUNER::PrunerConfig pruner_conf) {
     program = P4PRUNER::prune_statements(program, pruner_conf);
