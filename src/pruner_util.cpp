@@ -149,7 +149,11 @@ ErrorType classify_bug(ExitInfo exit_info) {
 
     if (exit_code == EXIT_TEST_VALIDATION) {
         return ErrorType::SemanticBug;
-    } else if (exit_code == EXIT_TEST_FAILURE) {
+    } else if (exit_code == EXIT_TEST_SUCCESS) {
+        return ErrorType::Success;
+    } else if (exit_code == EXIT_TEST_UNDEFINED) {
+        return ErrorType::Undefined;
+    } else {
         cstring comp = exit_info.err_msg.find("Compiler Bug");
 
         if (!comp.isNullOrEmpty()) {
@@ -160,10 +164,6 @@ ErrorType classify_bug(ExitInfo exit_info) {
         if (!err_msg.isNullOrEmpty()) {
             return ErrorType::Error;
         }
-        return ErrorType::Unknown;
-    } else if (exit_code == EXIT_TEST_SUCCESS) {
-        return ErrorType::Success;
-    } else {
         return ErrorType::Unknown;
     }
 }

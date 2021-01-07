@@ -15,6 +15,7 @@
 #define EXIT_TEST_VALIDATION 20
 #define EXIT_TEST_FAILURE -1
 #define EXIT_TEST_SUCCESS 0
+#define EXIT_TEST_UNDEFINED 30
 
 namespace P4PRUNER {
 
@@ -23,7 +24,8 @@ enum class ErrorType : uint32_t {
     CrashBug = 1,
     Error = 2,
     Unknown = 3,
-    Success = 4
+    Success = 4,
+    Undefined = 5
 };
 
 struct ExitInfo {
