@@ -39,6 +39,16 @@ bool file_exists(cstring file_path) {
     return true;
 }
 
+void create_dir(cstring folder_path) {
+    int ret;
+    cstring cmd = "mkdir -p ";
+    cmd += folder_path;
+    ret = system(cmd);
+    if (ret) {
+        ::warning("Creating folder %s failed.", folder_path);
+    }
+}
+
 void remove_file(cstring file_path) {
     int ret;
     cstring cmd = "rm -rf ";
@@ -172,6 +182,7 @@ void emit_p4_program(const IR::P4Program *program, cstring prog_name) {
     auto temp_f = new std::ofstream(prog_name);
     P4::ToP4 *temp_p4 = new P4::ToP4(temp_f, false);
     program->apply(*temp_p4);
+    temp_f->close();
 }
 
 void print_p4_program(const IR::P4Program *program) {
@@ -211,13 +222,13 @@ double measure_pct(const IR::P4Program *prog_before,
 int check_pruned_program(const IR::P4Program **orig_program,
                          const IR::P4Program *pruned_program,
                          P4PRUNER::PrunerConfig pruner_conf) {
-    emit_p4_program(pruned_program, pruner_conf.out_file_name);
+    cstring out_file = pruner_conf.working_dir + pruner_conf.out_file_name;
+    emit_p4_program(pruned_program, out_file);
     if (compare_files(pruned_program, *orig_program)) {
         INFO("File has not changed. Skipping analysis.");
         return EXIT_FAILURE;
     }
-    int exit_code =
-        get_exit_info(pruner_conf.out_file_name, pruner_conf).exit_code;
+    int exit_code = get_exit_info(out_file, pruner_conf).exit_code;
     // if got the right exit code, then modify the original program, if not
     // then choose a smaller bank of statements to remove now.
     if (exit_code != pruner_conf.exit_code) {

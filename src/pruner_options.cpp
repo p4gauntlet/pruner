@@ -4,9 +4,9 @@ namespace P4PRUNER {
 
 PrunerOptions::PrunerOptions() {
     registerOption(
-        "--emit-p4", nullptr,
+        "--dry-run", nullptr,
         [this](const char *) {
-            emit_p4 = true;
+            dry_run = true;
             return true;
         },
         "Whether to emit a p4 file after.");

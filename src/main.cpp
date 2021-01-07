@@ -185,6 +185,9 @@ int main(int argc, char *const argv[]) {
         return EXIT_FAILURE;
     }
 
+    // create the working dir
+    P4PRUNER::create_dir(pruner_conf.working_dir);
+
     // at this point, all properties should be known
     P4PRUNER::ExitInfo exit_info;
     exit_info.exit_code = pruner_conf.exit_code;
@@ -195,7 +198,7 @@ int main(int argc, char *const argv[]) {
     // if a seed was provided, use it
     // otherwise generate a random seed and set it
     process_seed(options);
-    // parse the input P4 program
+    // parse the input P4 program<
     program = P4::parseP4File(options);
 
     if (program != nullptr && ::errorCount() == 0) {
@@ -205,14 +208,15 @@ int main(int argc, char *const argv[]) {
         if (options.print_pruned) {
             P4PRUNER::print_p4_program(program);
         }
-        // if the emit flag is enabled, also emit the new P4 program
-        if (options.emit_p4) {
+        // sometimes we do not want to emit the final file
+        if (!options.dry_run) {
             P4PRUNER::emit_p4_program(program, pruner_conf.out_file_name);
         }
         INFO("Total reduction percentage = "
              << P4PRUNER::measure_pct(original, program) << " %");
     }
     INFO("Done. Removing ephemeral working directory.");
+    // need to wait a little because of race conditions
     P4PRUNER::remove_file(pruner_conf.working_dir);
     return ::errorCount() > 0;
 }

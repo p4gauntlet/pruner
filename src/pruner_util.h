@@ -48,7 +48,7 @@ struct PrunerConfig {
     PrunerConfig()
         : exit_code(0), validation_bin(nullptr), prog_before{nullptr},
           prog_post(nullptr), compiler(nullptr), working_dir(nullptr),
-          out_file_name(nullptr), allow_undef(false), err_string(nullptr),
+          out_file_name(nullptr), err_string(nullptr), allow_undef(false),
           err_type(ErrorType::Unknown) {}
 };
 
@@ -58,6 +58,7 @@ big_int get_rnd_big_int(big_int min, big_int max);
 double get_rnd_pct();
 
 bool file_exists(cstring file_path);
+void create_dir(cstring folder_path);
 void remove_file(cstring file_path);
 cstring remove_extension(cstring file_path);
 cstring get_file_stem(cstring file_path);

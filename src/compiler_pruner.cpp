@@ -26,7 +26,6 @@ const IR::P4Program *apply_generic_passes(const IR::P4Program *program,
 
     INFO("Applying Generic passes...");
     temp = program->apply(pass_manager);
-    emit_p4_program(temp, pruner_conf.out_file_name);
     if (check_pruned_program(&program, temp, pruner_conf) == EXIT_SUCCESS) {
         *applied = true;
     }
@@ -38,7 +37,6 @@ const IR::P4Program *apply_replace_vars(const IR::P4Program *program,
                                         P4PRUNER::PrunerConfig pruner_conf) {
     INFO("Replacing variables...");
     const IR::P4Program *temp = replace_variables(program, pruner_conf);
-    emit_p4_program(temp, pruner_conf.out_file_name);
     check_pruned_program(&program, temp, pruner_conf);
 
     return program;
@@ -54,7 +52,6 @@ const IR::P4Program *apply_unused_decls(const IR::P4Program *program,
 
     INFO("Applying custom RemoveAllUnusedDeclarations...");
     temp = program->apply(pass_manager);
-    emit_p4_program(temp, pruner_conf.out_file_name);
     check_pruned_program(&program, temp, pruner_conf);
 
     return program;
