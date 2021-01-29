@@ -73,7 +73,7 @@ TypeInference
 
 This pass tries to replace each variable with a literal and checks if the bug remained, for example it might turn the expressions `aVar + bVar` to `16w0 + 10w0` depending upon the bitwidth of the variables. We do this to aid the subsquent pass (i.e Extended unused declarations) which tries to remove all unused decelarations from the program, so this pass frees up more variables to be removed by the next pass.
 
-## Replace variables
+## Extended remove unused declarations 
 
 ### Required preceding passes 
 
@@ -86,3 +86,18 @@ This pass tries to replace each variable with a literal and checks if the bug re
 ### Description
 
 This is a subclass of `P4::RemoveUnusedDeclarations` where we try to agressively remove all unused declarations as opposed to the conserative approach followed by p4c since we don't care about semantic preserving but rather only about saving the bug. 
+
+--- 
+
+## Current Order of the applied passes 
+
+
+
+- Statement pruning
+- Expression pruning
+- Boolean expression pruning
+- Generic passes // this starts the compiler pruning phase
+- Replace variables
+- Extended remove unused declarations
+
+---
