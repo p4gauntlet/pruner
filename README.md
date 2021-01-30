@@ -1,4 +1,19 @@
-# Pruner passes
+# Usage
+
+# To prune without a config 
+
+`p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] --validation-bin [PATH_TO_VALIDATION_BIN] [P4_PROG] `
+
+# To prune with a config 
+
+`p4pruner --config [P4_CONFIG] [P4_PROG] `
+
+Note : A sample config is provided at the root of the repo. 
+
+
+---
+
+# Pruning passes
 
 ## Statement pruning
 
@@ -100,18 +115,3 @@ This is a subclass of `P4::RemoveUnusedDeclarations` where we try to agressively
 - Replace variables
 - Extended remove unused declarations
 
----
-
-## Usage
-
-### Validation bug
-
-`p4pruner --compiler-bin p4c/build/p4test --validation-bin bin/validate_p4_translation prog_with_validation_bug.p4 `
-
-Note that you need to provide the path to the validation binary as well as the compiler binary to prune a validation bug.
-
-### Crash bug
-
-`p4pruner --config prog_with_crash_bug_config.json prog_with_crash_bug.p4 `
-
-Note that you need to provide a json conifg to prune a crash bug, a sample config is provided at the root of the repositry.
