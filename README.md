@@ -1,71 +1,104 @@
-# Usage
+# The Gauntlet Pruner
 
-# To prune without a config 
+The Gauntlet pruner is a tool designed to reduce the size of P4 programs that cause crashes or abnormal behavior in P4 compilers. This tool is intended to be used in combination with the [Gauntlet tool suite](https://github.com/p4gauntlet/gauntlet/). The pruner currently supports the pruning of programs with crash  (exit code 1) or semantic translation bugs (exit code 20 as defined [here](https://github.com/p4gauntlet/gauntlet/blob/master/src/p4z3/util.py#L10)).
 
-`p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] --validation-bin [PATH_TO_VALIDATION_BIN] [P4_PROG] `
 
-# To prune with a config 
+## Usage
+Note: A sample config is provided at the root of the repo.
+
+### Validation Bugs
+
+## Pruning with a Configuration File
+If a configuration file is provided only the P4 program is necessary:
 
 `p4pruner --config [P4_CONFIG] [P4_PROG] `
 
-Note : A sample config is provided at the root of the repo. 
+## Pruning without a Configuration File
+If no configuration file is present, the pruner requires the path to the validation binary that was used, as well as the compiler that was used to translate the P4 program:
+`p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] --validation-bin [PATH_TO_VALIDATION_BIN] [P4_PROG] `
 
+### Crash Bugs
 
----
+## Pruning with a Configuration File
+If a configuration file is provided only the P4 program is necessary:
 
-# Pruning passes
+`p4pruner --config [P4_CONFIG] [P4_PROG] `
 
-## Statement pruning
+## Pruning without a Configuration File
+If no configuration file is present, the pruner requires the path to the compiler binary that was used to translate the P4 program. For crash bugs, a validation binary is not necessary:
+`p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] [P4_PROG] `
 
-### Required preceding passes 
+## The Pruning Stages
+The pruning passes build on top of each other. The current order of execution is as follows:
+
+```
+Statement pruning // randomly remove statements
+        V
+Expression pruning // randomly remove expressions
+        V
+Boolean expression pruning // simplify boolean expressions
+        V
+Generic passes // reuse initialization passes from P4C
+        V
+Replace variables // replace variables with constants
+        V
+Extended remove unused declarations // remove any unused declarations
+```
+
+The following passes to prune a P4 program are currently implemented.
+
+### Statement Pruning
+
+#### Required Preceding Passes
 
 - None
 
-### Parameters 
-- `PRUNE_STMT_MAX`  : The initial size of the bank of statements that we start pruning, later this might become a function of the initial size of the given p4 program.   
+#### Parameters
+- `PRUNE_STMT_MAX`  : The initial size of the bank of statements that we start pruning, later this might become a function of the initial size of the given p4 program.
 - `PRUNE_ITERS`     : The number of times the statement pruner would run through the program.
 - `NO_CHNG_ITERS`   : If the program remains the same for this number of iterations then we assume the phase is completed and move to the next pass.
 - `AIDM_INCREASE`   : The additive increasing factor for the bank of statements.
-- `AIDM_DECREASE`   : The multiplicative decresing factor for the bank of statements.
-  
-### Description
+- `AIDM_DECREASE`   : The multiplicative decreasing factor for the bank of statements.
 
-This pass tries to prune statements from the program. A certain number of statements are chosen at random by a `Collector` which is a subclass of an `Inspector`. Then these are fed to a `Pruner` which is a subclass of a `Transform`, which actually prunes the statements from the program tree. We start with a very large number of statements to prune, and then follow a AIMD, if we were successful in our attempt, i.e the exit code of the program remained the same, i.e the bug still exists in the program, we increase the bank by 2 statements otherwise we half the size of the bank.
+#### Description
+
+This pass tries to prune statements from the program. A certain number of statements are chosen at random by a `Collector` which is a subclass of an `Inspector`. Then these are fed to a `Pruner` which is a subclass of a `Transform`, which actually prunes the statements from the program tree. We start with a very large number of statements to prune, and then follow an additive increase/multiplicative decrease (AIMD) scheme. If we were successful in our attempt, i.e. the exit code of the program remained the same and the bug still exists in the program, we increase the bank by 2 statements otherwise we half the size of the bank.
 
 
+### Expression Pruning
 
-## Expression pruning
-
-### Required preceding passes 
+#### Required Preceding Passes
 
 - None
 
-### Parameters 
+#### Parameters
 - `PRUNE_ITERS`     : The number of times the expressions pruner would run through the program.
 - `NO_CHNG_ITERS`   : If the program remains the same for this number of iterations then we assume the phase is completed and move to the next pass.
 
-### Description
+#### Description
 
-This pass now tries to prune the individual expressions inside the statements. We have defined how the pass would handle and prune different type of expressions, for example, given a operator, we try to randomly pick a side and see if the bug remains. Given a shift, we simplify it to the lvalue. There are still many expressions that we haven't looked at yet, for example a `Range` or a `Slice`.
+This pass operators similarly as the statement pruner but prunes the expressions in the statements that remain. We explicitly define how the pass would handle and prune different types of expressions. For example, given an addition operator, we try to randomly pick a side and see if the bug remains. In other cases, for example shifts, we just pick the value that is to be shifted. Only few expressions are implemented so far, for example  `Range` or a `Slice` are still missing.
 
 
-## Boolean pruning
+### Boolean Pruning
 
-### Required preceding passes 
+#### Required Preceding Passes
 
 - None
 
-### Parameters 
+#### Parameters
 - `PRUNE_ITERS`     : The number of times the boolean pruner would run through the program.
 - `NO_CHNG_ITERS`   : If the program remains the same for this number of iterations then we assume the phase is completed and move to the next pass.
 
-### Description
+#### Description
 
 This pass now tries to prune and simplify boolean expressions. Given a boolean expression we try to replace it with a random boolean literal and see if the bug remains.
 
-# Compiler pruning
+### Compiler Pruning
 
-These passes require some generic passes : 
+The passes after this stage require some generic passes from P4C. We execute these passes
+to retrieve the reference map and infer all types in the program. Note, that because
+type inference requires constant folding, we may not always be able to apply these passes.
 
 ```
 ResolveReferences,
@@ -74,44 +107,30 @@ InstantiateDirectCalls,
 TypeInference
 ```
 
-## Replace variables
+### Replace Variables
 
-### Required preceding passes 
+#### Required Preceding Passes
 
 - Generic Passes once
 - `ResolveReferences and TypeInference` every pass
 
-### Parameters 
+#### Parameters
 - None
 
-### Description
+#### Description
 
-This pass tries to replace each variable with a literal and checks if the bug remained, for example it might turn the expressions `aVar + bVar` to `16w0 + 10w0` depending upon the bitwidth of the variables. We do this to aid the subsquent pass (i.e Extended unused declarations) which tries to remove all unused decelarations from the program, so this pass frees up more variables to be removed by the next pass.
+This pass tries to replace each variable with a literal and checks if the bug remained. For example, it might turn the expressions `aVar + bVar` to `16w0 + 10w0` depending upon the bit width of the variables. We do this to aid the subsequent pass (i.e Extended unused declarations) which tries to remove all unused declarations from the program. This pass frees up more expressions and declarations, that can then be removed by the next pass.
 
-## Extended remove unused declarations 
+### Extended Remove Unused Declarations
 
-### Required preceding passes 
+#### Required Preceding Passes
 
 - Generic Passes once
 - Replace variables
 
-### Parameters 
+#### Parameters
 - None
 
-### Description
+#### Description
 
-This is a subclass of `P4::RemoveUnusedDeclarations` where we try to agressively remove all unused declarations as opposed to the conserative approach followed by p4c since we don't care about semantic preserving but rather only about saving the bug. 
-
---- 
-
-## Current Order of the applied passes 
-
-
-
-- Statement pruning
-- Expression pruning
-- Boolean expression pruning
-- Generic passes // this starts the compiler pruning phase
-- Replace variables
-- Extended remove unused declarations
-
+This is a subclass of `P4::RemoveUnusedDeclarations` where we try to aggressively remove all unused declarations as opposed to the conservative approach of P4C. We do not care about maintaining the functionality of the program only about the bug that exists in it.
