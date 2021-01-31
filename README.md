@@ -1,31 +1,49 @@
 # The Gauntlet Pruner
 
-The Gauntlet pruner is a tool designed to reduce the size of P4 programs that cause crashes or abnormal behavior in P4 compilers. This tool is intended to be used in combination with the [Gauntlet tool suite](https://github.com/p4gauntlet/gauntlet/). The pruner currently supports the pruning of programs with crash  (exit code 1) or semantic translation bugs (exit code 20 as defined [here](https://github.com/p4gauntlet/gauntlet/blob/master/src/p4z3/util.py#L10)).
-
+The Gauntlet pruner is a tool designed to reduce the size of P4 programs that cause crashes or abnormal behavior in P4 compilers. This tool is intended to be used in combination with the [Gauntlet tool suite](https://github.com/p4gauntlet/gauntlet/). The pruner currently supports the pruning of programs with crash  (exit code 1) or semantic translation bugs (exit code 20, as defined [here](https://github.com/p4gauntlet/gauntlet/blob/master/src/p4z3/util.py#L10)).
 
 ## Usage
-Note: A sample config is provided at the root of the repo.
+Note: A sample configuration file is provided [here](https://github.com/p4gauntlet/pruner/blob/documentation/program_with_validation_bug.json).
 
-### Validation Bugs
+### Configuration file Format
+The pruner can automatically load some basic configuration parameters from a
+JSON configuration file. The file has the following fields:
 
-## Pruning with a Configuration File
+```bash
+ # Was the validation bug found when undefined behavior was allowed?
+"allow_undef": false,
+ # What was the compiler used to compile the P4 program?
+"compiler": "gauntlet/modules/p4c/build/p4test",
+ # The exit code of the program
+"exit_code": 1,
+ # the input P4 program
+"input_file": "program_with_validation_bug.p4",
+ # the target directory of the binary that compiled the program
+"out_dir": "gauntlet/random/validation_bugs",
+# the binary to the P4-to-Z3 interpreter
+"p4z3_bin": "",
+# if we encountered a validation bug, this describes the incorrect program
+"prog_after": "",
+# the program that was still correct, before a miscompilation occurred
+"prog_before": "",
+# the path to the validation tool that found the bug
+"validation_bin": "",
+# the error message that was recorded when the binary exited
+"err_string": ""
+```
+
+### Pruning with a Configuration File
 If a configuration file is provided only the P4 program is necessary:
 
 `p4pruner --config [P4_CONFIG] [P4_PROG] `
 
-## Pruning without a Configuration File
+### Pruning without a Configuration File
 If no configuration file is present, the pruner requires the path to the validation binary that was used, as well as the compiler that was used to translate the P4 program:
+
 `p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] --validation-bin [PATH_TO_VALIDATION_BIN] [P4_PROG] `
 
-### Crash Bugs
+For crash bugs, the validation binary can be omitted:
 
-## Pruning with a Configuration File
-If a configuration file is provided only the P4 program is necessary:
-
-`p4pruner --config [P4_CONFIG] [P4_PROG] `
-
-## Pruning without a Configuration File
-If no configuration file is present, the pruner requires the path to the compiler binary that was used to translate the P4 program. For crash bugs, a validation binary is not necessary:
 `p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] [P4_PROG] `
 
 ## The Pruning Stages
@@ -45,7 +63,7 @@ Replace variables // replace variables with constants
 Extended remove unused declarations // remove any unused declarations
 ```
 
-The following passes to prune a P4 program are currently implemented.
+The following passes to prune a P4 program are currently implemented:
 
 ### Statement Pruning
 

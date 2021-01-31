@@ -1,22 +1,12 @@
 {
-     // Was the validation bug found when undefined behavior was allowed?
     "allow_undef": false,
-     // What was the compiler used to compile the P4 program?
     "compiler": "gauntlet/modules/p4c/build/p4test",
-     // The exit code of the program
     "exit_code": 1,
-     // the input P4 program
     "input_file": "program_with_validation_bug.p4",
-     // the target directory of the binary that compiled the program
     "out_dir": "gauntlet/random/validation_bugs",
-    // the binary to the P4-to-Z3 interpreter
     "p4z3_bin": "",
-    // if we encountered a validation bug, this describes the incorrect program
     "prog_after": "",
-    // the program that was still correct, before a miscompilation occurred
     "prog_before": "",
-    // the path to the validation tool that found the bug
     "validation_bin": "",
-    // the error message that was recorded when the binary exited
     "err_string": ""
 }
