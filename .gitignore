@@ -44,4 +44,5 @@ example_programs/random/
 
 pruned/
 
-
+# Sample config files
+*.json
