@@ -79,11 +79,11 @@ const IR::P4Program *prune_statements(const IR::P4Program *program,
         result = check_pruned_program(&program, temp, pruner_conf);
         if (result != EXIT_SUCCESS) {
             same_before_pruning++;
-            max_statements = std::max(1, max_statements / 2);
+            max_statements = std::max(1, max_statements / AIMD_DECREASE);
         } else {
             // successful run, reset short-circuit
             same_before_pruning = 0;
-            max_statements += 2;
+            max_statements += AIMD_INCREASE;
         }
         if (same_before_pruning >= NO_CHNG_ITERS) {
             break;
