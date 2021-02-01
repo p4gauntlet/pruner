@@ -228,10 +228,12 @@ int check_pruned_program(const IR::P4Program **orig_program,
                          P4PRUNER::PrunerConfig pruner_conf) {
     cstring out_file =
         pruner_conf.working_dir + get_file_stem(pruner_conf.out_file_name);
+    // append a .p4 suffix
+    out_file += ".p4";
     emit_p4_program(pruned_program, out_file);
     if (compare_files(pruned_program, *orig_program)) {
         INFO("File has not changed. Skipping analysis.");
-        return EXIT_FAILURE;
+        return EXIT_SUCCESS;
     }
     int exit_code = get_exit_info(out_file, pruner_conf).exit_code;
     // if got the right exit code, then modify the original program, if not

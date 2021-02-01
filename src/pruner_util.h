@@ -10,11 +10,12 @@
 // define some fixed constants
 #define PRUNE_STMT_MAX 100
 #define PRUNE_ITERS 50
-#define NO_CHNG_ITERS 7
+#define NO_CHNG_ITERS 10
 
 // AIDM constants
 #define AIMD_INCREASE 2
 #define AIMD_DECREASE 2
+
 
 // adding TEST, as it collides with constants defined by cpp.
 #define EXIT_TEST_VALIDATION 20
