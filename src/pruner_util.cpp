@@ -208,18 +208,15 @@ bool compare_files(const IR::P4Program *prog_before,
     return before_stream->str() == after_stream->str();
 }
 
-double measure_size(const IR::P4Program *prog){
+double measure_size(const IR::P4Program *prog) {
     auto prog_stream = new std::stringstream;
     P4::ToP4 *toP4 = new P4::ToP4(prog_stream, false);
     prog->apply(*toP4);
     return prog_stream->str().length();
-
 }
-
 
 double measure_pct(const IR::P4Program *prog_before,
                    const IR::P4Program *prog_after) {
-    
     double before_len = measure_size(prog_before);
 
     return (before_len - measure_size(prog_after)) * (100.0 / before_len);

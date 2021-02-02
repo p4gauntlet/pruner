@@ -16,7 +16,8 @@
 #include "statement_pruner.h"
 
 const IR::P4Program *prune(const IR::P4Program *program,
-                           P4PRUNER::PrunerConfig pruner_conf, double prog_size) {
+                           P4PRUNER::PrunerConfig pruner_conf,
+                           double prog_size) {
     program = P4PRUNER::prune_statements(program, pruner_conf, prog_size);
     program = P4PRUNER::prune_expressions(program, pruner_conf);
     program = P4PRUNER::prune_bool_expressions(program, pruner_conf);
