@@ -72,7 +72,7 @@ The following passes to prune a P4 program are currently implemented:
 - None
 
 #### Parameters
-- `PRUNE_STMT_MAX`  : The initial size of the bank of statements that we start pruning, later this might become a function of the initial size of the given p4 program.
+- `SIZE_BANK_RATIO`  : The ratio between the initial size of the bank of statements and the size of the program.
 - `PRUNE_ITERS`     : The number of times the statement pruner would run through the program.
 - `NO_CHNG_ITERS`   : If the program remains the same for this number of iterations then we assume the phase is completed and move to the next pass.
 - `AIDM_INCREASE`   : The additive increasing factor for the bank of statements.
