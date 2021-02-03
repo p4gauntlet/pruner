@@ -8,7 +8,7 @@
 #define INFO(x) std::cout << x << std::endl;
 
 // define some fixed constants
-#define SIZE_BANK_RATIO 60
+#define SIZE_BANK_RATIO 1.1
 #define PRUNE_ITERS 50
 #define NO_CHNG_ITERS 10
 
@@ -84,6 +84,8 @@ double measure_pct(const IR::P4Program *prog_before,
                    const IR::P4Program *prog_after);
 
 double measure_size(const IR::P4Program *prog);
+
+uint64_t count_statements(const IR::P4Program *prog);
 
 int check_pruned_program(const IR::P4Program **orig_program,
                          const IR::P4Program *pruned_program,

@@ -6,6 +6,7 @@
 
 #include <boost/random.hpp>
 
+#include "counter.h"
 #include "frontends/p4/toP4/toP4.h"
 #include "pruner_util.h"
 
@@ -213,6 +214,12 @@ double measure_size(const IR::P4Program *prog) {
     P4::ToP4 *toP4 = new P4::ToP4(prog_stream, false);
     prog->apply(*toP4);
     return prog_stream->str().length();
+}
+
+uint64_t count_statements(const IR::P4Program *prog) {
+    Counter *counter = new Counter();
+    prog->apply(*counter);
+    return counter->statements;
 }
 
 double measure_pct(const IR::P4Program *prog_before,

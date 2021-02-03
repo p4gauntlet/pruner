@@ -35,7 +35,7 @@ class Collector : public Inspector {
 
 const IR::P4Program *prune_statements(const IR::P4Program *program,
                                       P4PRUNER::PrunerConfig pruner_conf,
-                                      double prog_size);
+                                      uint64_t prog_size);
 
 } // namespace P4PRUNER
 
