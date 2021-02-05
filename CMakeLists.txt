@@ -9,6 +9,7 @@ set (P4PRUNER_SRCS
     src/boolean_pruner.cpp
     src/extended_unused.cpp
     src/replace_variables.cpp
+    src/counter.cpp
     )
 set (P4PRUNER_HDRS
     src/pruner_options.h
@@ -19,6 +20,7 @@ set (P4PRUNER_HDRS
     src/boolean_pruner.h
     src/extended_unused.h
     src/replace_variables.h
+    src/counter.h
     )
 
 

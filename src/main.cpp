@@ -16,8 +16,9 @@
 #include "statement_pruner.h"
 
 const IR::P4Program *prune(const IR::P4Program *program,
-                           P4PRUNER::PrunerConfig pruner_conf) {
-    program = P4PRUNER::prune_statements(program, pruner_conf);
+                           P4PRUNER::PrunerConfig pruner_conf,
+                           uint64_t prog_size) {
+    program = P4PRUNER::prune_statements(program, pruner_conf, prog_size);
     program = P4PRUNER::prune_expressions(program, pruner_conf);
     program = P4PRUNER::prune_bool_expressions(program, pruner_conf);
     program = P4PRUNER::apply_compiler_passes(program, pruner_conf);
@@ -204,8 +205,10 @@ int main(int argc, char *const argv[]) {
 
     if (program != nullptr && ::errorCount() == 0) {
         auto original = program;
+        double prog_size = P4PRUNER::count_statements(original);
+        INFO("Size of the program :" << prog_size << " statements");
 
-        program = prune(program, pruner_conf);
+        program = prune(program, pruner_conf, prog_size);
         if (options.print_pruned) {
             P4PRUNER::print_p4_program(program);
         }

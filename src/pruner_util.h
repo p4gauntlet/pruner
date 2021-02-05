@@ -8,14 +8,13 @@
 #define INFO(x) std::cout << x << std::endl;
 
 // define some fixed constants
-#define PRUNE_STMT_MAX 100
+#define SIZE_BANK_RATIO 1.1
 #define PRUNE_ITERS 50
 #define NO_CHNG_ITERS 10
 
 // AIDM constants
 #define AIMD_INCREASE 2
 #define AIMD_DECREASE 2
-
 
 // adding TEST, as it collides with constants defined by cpp.
 #define EXIT_TEST_VALIDATION 20
@@ -83,6 +82,11 @@ bool compare_files(const IR::P4Program *prog_before,
 
 double measure_pct(const IR::P4Program *prog_before,
                    const IR::P4Program *prog_after);
+
+double measure_size(const IR::P4Program *prog);
+
+uint64_t count_statements(const IR::P4Program *prog);
+
 int check_pruned_program(const IR::P4Program **orig_program,
                          const IR::P4Program *pruned_program,
                          P4PRUNER::PrunerConfig pruner_conf);

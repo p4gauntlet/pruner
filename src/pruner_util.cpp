@@ -6,6 +6,7 @@
 
 #include <boost/random.hpp>
 
+#include "counter.h"
 #include "frontends/p4/toP4/toP4.h"
 #include "pruner_util.h"
 
@@ -208,19 +209,24 @@ bool compare_files(const IR::P4Program *prog_before,
     return before_stream->str() == after_stream->str();
 }
 
+double measure_size(const IR::P4Program *prog) {
+    auto prog_stream = new std::stringstream;
+    P4::ToP4 *toP4 = new P4::ToP4(prog_stream, false);
+    prog->apply(*toP4);
+    return prog_stream->str().length();
+}
+
+uint64_t count_statements(const IR::P4Program *prog) {
+    Counter *counter = new Counter();
+    prog->apply(*counter);
+    return counter->statements;
+}
+
 double measure_pct(const IR::P4Program *prog_before,
                    const IR::P4Program *prog_after) {
-    auto before_stream = new std::stringstream;
-    auto after_stream = new std::stringstream;
-    P4::ToP4 *before = new P4::ToP4(before_stream, false);
-    prog_before->apply(*before);
-    auto before_len = before_stream->str().length();
+    double before_len = measure_size(prog_before);
 
-    P4::ToP4 *after = new P4::ToP4(after_stream, false);
-    prog_after->apply(*after);
-    auto after_len = after_stream->str().length();
-
-    return (before_len - after_len) * (100.0 / before_len);
+    return (before_len - measure_size(prog_after)) * (100.0 / before_len);
 }
 
 int check_pruned_program(const IR::P4Program **orig_program,

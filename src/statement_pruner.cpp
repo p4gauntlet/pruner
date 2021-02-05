@@ -65,10 +65,12 @@ remove_statements(const IR::P4Program *temp,
 }
 
 const IR::P4Program *prune_statements(const IR::P4Program *program,
-                                      P4PRUNER::PrunerConfig pruner_conf) {
+                                      P4PRUNER::PrunerConfig pruner_conf,
+                                      uint64_t prog_size) {
     int same_before_pruning = 0;
     int result;
-    int max_statements = PRUNE_STMT_MAX;
+    int max_statements = prog_size / SIZE_BANK_RATIO;
+
     INFO("\nPruning statements");
     for (int i = 0; i < PRUNE_ITERS; i++) {
         INFO("Trying with  " << max_statements << " statements");
