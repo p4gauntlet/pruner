@@ -47,7 +47,8 @@ void process_seed(P4PRUNER::PrunerOptions options) {
 
 P4PRUNER::PrunerConfig get_config_from_json(cstring json_path,
                                             cstring working_dir,
-                                            cstring input_file) {
+                                            cstring input_file,
+                                            P4PRUNER::PrunerOptions options) {
     if (!P4PRUNER::file_exists(json_path)) {
         ::error("Config file %s does not exist! Exiting.", json_path);
         exit(EXIT_FAILURE);
@@ -66,11 +67,18 @@ P4PRUNER::PrunerConfig get_config_from_json(cstring json_path,
     pruner_conf.working_dir = working_dir;
     pruner_conf.allow_undef = config_json.at("allow_undef");
     pruner_conf.err_string = cstring(config_json.at("err_string"));
-    // also store the new output name
-    // TODO(fruffy): Make this an option
-    cstring output_name = P4PRUNER::remove_extension(input_file);
-    output_name += "_stripped.p4";
+
+    cstring output_name = nullptr;
+    if (options.outputFile == nullptr) {
+        output_name = P4PRUNER::remove_extension(options.file);
+        output_name += "_stripped.p4";
+    } else {
+        INFO("User provided output name : " << options.outputFile);
+        output_name = options.outputFile;
+    }
+
     pruner_conf.out_file_name = output_name;
+    INFO("Setting output name to : " << output_name);
     return pruner_conf;
 }
 
@@ -116,7 +124,8 @@ P4PRUNER::PrunerConfig get_conf_from_script(P4PRUNER::PrunerOptions options) {
     conf_file += "/";
     conf_file += file_stem;
     conf_file += "_info.json";
-    return get_config_from_json(conf_file, options.working_dir, options.file);
+    return get_config_from_json(conf_file, options.working_dir, options.file,
+                                options);
 }
 
 P4PRUNER::PrunerConfig get_conf_from_compiler(P4PRUNER::PrunerOptions options) {
@@ -135,8 +144,14 @@ P4PRUNER::PrunerConfig get_conf_from_compiler(P4PRUNER::PrunerOptions options) {
     pruner_conf.prog_post = "";
     pruner_conf.working_dir = options.working_dir;
     pruner_conf.allow_undef = true;
-    cstring output_name = P4PRUNER::remove_extension(options.file);
-    output_name += "_stripped.p4";
+    cstring output_name = nullptr;
+    if (options.outputFile == nullptr) {
+        output_name = P4PRUNER::remove_extension(options.file);
+        output_name += "_stripped.p4";
+    } else {
+        output_name = options.outputFile;
+    }
+    INFO("Setting output name to : " << output_name);
     pruner_conf.out_file_name = output_name;
     // auto-fill the exit info from running the compiler on it
     auto exit_info = P4PRUNER::get_exit_info(options.file, pruner_conf);
@@ -171,8 +186,8 @@ int main(int argc, char *const argv[]) {
     P4PRUNER::PrunerConfig pruner_conf;
 
     if (options.config_file) {
-        pruner_conf = get_config_from_json(options.config_file,
-                                           options.working_dir, options.file);
+        pruner_conf = get_config_from_json(
+            options.config_file, options.working_dir, options.file, options);
     } else if (options.compiler_bin && options.validation_bin) {
         // we are not provided with a config but validation and compiler bin
         // we should infer the expected output from these first
