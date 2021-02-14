@@ -20,6 +20,7 @@ class PrunerOptions : public CompilerOptions {
     bool do_rnd_prune = false;
     bool print_pruned = false;
     cstring seed;
+    cstring output_file = nullptr;
 };
 
 using P4PrunerContext = P4CContextWithOptions<PrunerOptions>;

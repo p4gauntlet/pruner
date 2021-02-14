@@ -53,6 +53,13 @@ PrunerOptions::PrunerOptions() {
         },
         "The seed for the random program. "
         "If no seed is provided we generate our own.");
+    registerOption(
+        "--output", "file",
+        [this](const char *arg) {
+            output_file = arg;
+            return true;
+        },
+        "The name of the output file.");
 }
 
 } // namespace P4PRUNER

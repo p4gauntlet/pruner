@@ -69,12 +69,12 @@ P4PRUNER::PrunerConfig get_config_from_json(cstring json_path,
     pruner_conf.err_string = cstring(config_json.at("err_string"));
 
     cstring output_name = nullptr;
-    if (options.outputFile == nullptr) {
+    if (options.output_file == nullptr) {
         output_name = P4PRUNER::remove_extension(options.file);
         output_name += "_stripped.p4";
     } else {
-        INFO("User provided output name : " << options.outputFile);
-        output_name = options.outputFile;
+        INFO("User provided output name : " << options.output_file);
+        output_name = options.output_file;
     }
 
     pruner_conf.out_file_name = output_name;
@@ -145,11 +145,11 @@ P4PRUNER::PrunerConfig get_conf_from_compiler(P4PRUNER::PrunerOptions options) {
     pruner_conf.working_dir = options.working_dir;
     pruner_conf.allow_undef = true;
     cstring output_name = nullptr;
-    if (options.outputFile == nullptr) {
+    if (options.output_file == nullptr) {
         output_name = P4PRUNER::remove_extension(options.file);
         output_name += "_stripped.p4";
     } else {
-        output_name = options.outputFile;
+        output_name = options.output_file;
     }
     INFO("Setting output name to : " << output_name);
     pruner_conf.out_file_name = output_name;
