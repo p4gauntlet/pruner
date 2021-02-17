@@ -15,9 +15,7 @@ parser.add_argument(
 parser.add_argument(
     "--pruner_path", help="The path to the pruner", required=True, type=pathlib.Path)
 parser.add_argument(
-    "--pruner_path", help="The path to the pruner", required=True, type=pathlib.Path)
-parser.add_argument(
-    "--type", help="Validation or Crash bug [v/c]", required=True, choices=['v,c'])
+    "--type", help="Validation or Crash bug [v/c]", required=True, choices=['V', 'C'])
 
 
 args = parser.parse_args()
@@ -47,26 +45,26 @@ if not p4_prog_path.is_file():
     print("Please provide the path to a valid p4 program")
     exit(1)
 
-seed = 2280963013
+seed = 3370029442
 cmd_args = [
-    f"{pruner_path} --seed {seed} --compiler-bin {compiler_path} --validation-bin {validation_path} {p4_prog_path}"]
+    str(pruner_path), "--seed", str(seed), "--compiler-bin", str(compiler_path),  "--validation-bin", str(validation_path), str(p4_prog_path), "--bug-type", args.type]
 
-subprocess.run(cmd_args)
+err = subprocess.run(cmd_args, capture_output=True).stderr
+print(err)
 
 pruned_file_path = pathlib.PosixPath(
     ".".join(str(p4_prog_path).split('.')[:-1]) + '_stripped.p4')
 
+reference_file_path = pathlib.PosixPath(
+    ".".join(str(p4_prog_path).split('.')[:-1]) + '_reference.p4')
 
-if args.type == 'v':
-    cmd = f"{validation_path} -i {p4_prog_path} -ll CRITICAL -p {compiler_path}"
-    if not subprocess.run(cmd).returncode == 20:
+if reference_file_path.is_file():
+    if os.system(f"diff {pruned_file_path} {reference_file_path}"):
         print("Test failed")
         exit(1)
+    else:
+        print("Test passed")
+        exit(0)
 else:
-    cmd = f"{compiler_path} --Wdisable  {p4_prog_path}"
-    if subprocess.run(cmd).returncode == 0:
-        print("Test failed")
-        exit(1)
-
-
-# print(pruned_file_path)
+    print("Reference file not found")
+    exit(1)

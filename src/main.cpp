@@ -1,4 +1,5 @@
 
+#include <cctype>
 #include <fstream>
 #include <iostream>
 #include <random>
@@ -60,6 +61,7 @@ P4PRUNER::PrunerConfig get_config_from_json(cstring json_path,
     config_file >> config_json;
 
     pruner_conf.exit_code = config_json.at("exit_code");
+
     pruner_conf.compiler = cstring(config_json.at("compiler"));
     pruner_conf.validation_bin = cstring(config_json.at("validation_bin"));
     pruner_conf.prog_before = cstring(config_json.at("prog_before"));
@@ -70,7 +72,7 @@ P4PRUNER::PrunerConfig get_config_from_json(cstring json_path,
 
     cstring output_name = nullptr;
     if (options.output_file == nullptr) {
-        output_name = P4PRUNER::remove_extension(options.file);
+        output_name = P4PRUNER::remove_extension(input_file);
         output_name += "_stripped.p4";
     } else {
         INFO("User provided output name : " << options.output_file);
@@ -78,7 +80,6 @@ P4PRUNER::PrunerConfig get_config_from_json(cstring json_path,
     }
 
     pruner_conf.out_file_name = output_name;
-    INFO("Setting output name to : " << output_name);
     return pruner_conf;
 }
 
@@ -151,10 +152,10 @@ P4PRUNER::PrunerConfig get_conf_from_compiler(P4PRUNER::PrunerOptions options) {
     } else {
         output_name = options.output_file;
     }
-    INFO("Setting output name to : " << output_name);
     pruner_conf.out_file_name = output_name;
     // auto-fill the exit info from running the compiler on it
     auto exit_info = P4PRUNER::get_exit_info(options.file, pruner_conf);
+
     pruner_conf.exit_code = exit_info.exit_code;
     pruner_conf.err_string = exit_info.err_msg;
     return pruner_conf;
@@ -184,6 +185,19 @@ int main(int argc, char *const argv[]) {
     }
 
     P4PRUNER::PrunerConfig pruner_conf;
+
+    switch (tolower(options.bug_type)) {
+    case 'c':
+        options.validation_bin = nullptr;
+        INFO("Ignoring validation bin for crash bug");
+        break;
+    case 'v':
+        break;
+    default:
+        ::error("Please enter a valid bug type. V for validation or C for "
+                "crash bug");
+        exit(EXIT_FAILURE);
+    }
 
     if (options.config_file) {
         pruner_conf = get_config_from_json(

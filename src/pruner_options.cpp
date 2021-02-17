@@ -60,6 +60,14 @@ PrunerOptions::PrunerOptions() {
             return true;
         },
         "The name of the output file.");
+
+    registerOption(
+        "--bug-type", "type",
+        [this](const char *arg) {
+            bug_type = *arg;
+            return true;
+        },
+        "The type of bug, enter V for validation bug, C for crash bug");
 }
 
 } // namespace P4PRUNER

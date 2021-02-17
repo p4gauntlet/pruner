@@ -91,6 +91,7 @@ cstring remove_extension(cstring file_path) {
 ExitInfo get_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     ExitInfo exit_info;
     INFO("Checking exit code.");
+
     if (pruner_conf.err_type == ErrorType::SemanticBug) {
         cstring command = pruner_conf.validation_bin;
         command += " -i ";
@@ -110,6 +111,7 @@ ExitInfo get_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
         exit_info.err_msg = cstring("");
 
     } else {
+        INFO("Trying get_crash_exit_info now");
         exit_info = get_crash_exit_info(name, pruner_conf);
     }
     return exit_info;
@@ -123,7 +125,6 @@ ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     command += name;
     // Apparently popen doesn't like stderr hence redirecting stderr to stdout
     command += " 2>&1";
-
     char buffer[1000];
     cstring result = "";
     FILE *pipe = popen(command, "r");
@@ -155,7 +156,7 @@ ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     }
     exit_info.exit_code = WEXITSTATUS(pclose(pipe));
     exit_info.err_msg = result;
-    INFO(result);
+
     return exit_info;
 }
 
@@ -172,6 +173,7 @@ ErrorType classify_bug(ExitInfo exit_info) {
         cstring comp = exit_info.err_msg.find("Compiler Bug");
 
         if (!comp.isNullOrEmpty()) {
+            INFO("Crash bug");
             return ErrorType::CrashBug;
         }
         cstring err_msg = exit_info.err_msg.find("error");

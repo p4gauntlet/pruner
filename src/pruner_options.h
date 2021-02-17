@@ -21,6 +21,7 @@ class PrunerOptions : public CompilerOptions {
     bool print_pruned = false;
     cstring seed;
     cstring output_file = nullptr;
+    char bug_type;
 };
 
 using P4PrunerContext = P4CContextWithOptions<PrunerOptions>;
