@@ -35,16 +35,20 @@ JSON configuration file. The file has the following fields:
 ### Pruning with a Configuration File
 If a configuration file is provided only the P4 program is necessary:
 
-`p4pruner --config [P4_CONFIG] [P4_PROG] `
+`p4pruner --config [P4_CONFIG] [P4_PROG] --bug-type [v/c]`
 
 ### Pruning without a Configuration File
 If no configuration file is present, the pruner requires the path to the validation binary that was used, as well as the compiler that was used to translate the P4 program:
 
-`p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] --validation-bin [PATH_TO_VALIDATION_BIN] [P4_PROG] `
+`p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] --validation-bin [PATH_TO_VALIDATION_BIN] [P4_PROG] --bug-type [v/c]`
 
 For crash bugs, the validation binary can be omitted:
 
-`p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] [P4_PROG] `
+`p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] [P4_PROG] --bug-type [v/c]`
+
+You must enter a bug type corresponding to the type of error in your p4 program 
+- Semantic bug/ Validation bug - v
+- Crash bug - c
 
 ## The Pruning Stages
 The pruning passes build on top of each other. The current order of execution is as follows:
@@ -152,3 +156,16 @@ This pass tries to replace each variable with a literal and checks if the bug re
 #### Description
 
 This is a subclass of `P4::RemoveUnusedDeclarations` where we try to aggressively remove all unused declarations as opposed to the conservative approach of P4C. We do not care about maintaining the functionality of the program only about the bug that exists in it.
+
+===== 
+# Testing 
+
+There is a testing binary in the `tests` folder called `check_prog.p4`. This file takes a p4 file along with a broken(bug-ridden) version of the p4c binary, and a validation binary, passes it to the pruner and then compares it to a reference file to test the working of the pruner. 
+
+## Usage
+
+`check_prog.py  --pruner_path [PATH_TO_PRUNER_BIN] --compiler [PATH_TO_COMPILER_BIN] --validation [PATH_TO_VALIDATION_BIN] --p4prog [P4_PROG] --type [V/C]`
+
+Note that the provided p4 prog must be from the ones present in the `references` directory.
+
+Also, there is a folder called `broken_p4c` which will house many versions of the p4c compiler each within a timestamped folder (using `date -I`). 

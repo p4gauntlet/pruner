@@ -8,6 +8,11 @@
 
 namespace P4PRUNER {
 
+enum class BugType : char {
+    SemanticBug = 'v',
+    CrashBug = 'c',
+};
+
 class PrunerOptions : public CompilerOptions {
  public:
     PrunerOptions();
@@ -20,8 +25,8 @@ class PrunerOptions : public CompilerOptions {
     bool do_rnd_prune = false;
     bool print_pruned = false;
     cstring seed;
+    BugType bug_type;
     cstring output_file = nullptr;
-    char bug_type;
 };
 
 using P4PrunerContext = P4CContextWithOptions<PrunerOptions>;

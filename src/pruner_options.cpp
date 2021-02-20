@@ -1,5 +1,5 @@
 #include "pruner_options.h"
-
+#include <cctype>
 namespace P4PRUNER {
 
 PrunerOptions::PrunerOptions() {
@@ -64,7 +64,7 @@ PrunerOptions::PrunerOptions() {
     registerOption(
         "--bug-type", "type",
         [this](const char *arg) {
-            bug_type = *arg;
+            bug_type = (BugType)(tolower(*arg));
             return true;
         },
         "The type of bug, enter V for validation bug, C for crash bug");

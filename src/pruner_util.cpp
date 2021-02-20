@@ -63,16 +63,18 @@ void remove_file(cstring file_path) {
 cstring get_file_stem(cstring file_path) {
     cstring file_stem;
     cstring stripped_name = P4PRUNER::remove_extension(file_path);
+
     const char *pos = stripped_name.findlast('/');
     // check if there even is a parent directory
     if (!pos) {
-        return file_path;
+        return stripped_name;
     }
     size_t idx = (size_t)(pos - stripped_name);
     if (idx != std::string::npos)
         file_stem = stripped_name.substr(idx + 1);
     else
         file_stem = stripped_name;
+
     return file_stem;
 }
 

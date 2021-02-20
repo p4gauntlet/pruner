@@ -186,12 +186,12 @@ int main(int argc, char *const argv[]) {
 
     P4PRUNER::PrunerConfig pruner_conf;
 
-    switch (tolower(options.bug_type)) {
-    case 'c':
+    switch (options.bug_type) {
+    case P4PRUNER::BugType::CrashBug:
         options.validation_bin = nullptr;
         INFO("Ignoring validation bin for crash bug");
         break;
-    case 'v':
+    case P4PRUNER::BugType::SemanticBug:
         break;
     default:
         ::error("Please enter a valid bug type. V for validation or C for "
@@ -202,18 +202,28 @@ int main(int argc, char *const argv[]) {
     if (options.config_file) {
         pruner_conf = get_config_from_json(
             options.config_file, options.working_dir, options.file, options);
-    } else if (options.compiler_bin && options.validation_bin) {
+    } else if (options.bug_type == P4PRUNER::BugType::SemanticBug) {
+        if (!(options.validation_bin && options.compiler_bin)) {
+            ::error("Need to provide both a validation binary and a compiler "
+                    "binary to prune a validation bug");
+            options.usage();
+            return EXIT_FAILURE;
+        }
+
         // we are not provided with a config but validation and compiler bin
         // we should infer the expected output from these first
         pruner_conf = get_conf_from_script(options);
-    } else if (options.compiler_bin) {
+
+    } else if (options.bug_type == P4PRUNER::BugType::CrashBug) {
+        if (!options.compiler_bin) {
+            ::error("Need to provide a compiler binary to prune a crash bug");
+            options.usage();
+            return EXIT_FAILURE;
+        }
+
         // we are not provided with a config but a compiler bin
         // we should infer the expected output from the compiler bin first
         pruner_conf = get_conf_from_compiler(options);
-    } else {
-        ::error("Need to provide either a validation_bin or a config file!");
-        options.usage();
-        return EXIT_FAILURE;
     }
 
     // create the working dir
