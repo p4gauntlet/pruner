@@ -185,15 +185,15 @@ int main(int argc, char *const argv[]) {
 
     P4PRUNER::ErrorType error_type;
 
-    if (options.bug_type == nullptr) {
-        ::error("Please provide a valid bug type");
+    if (options.bug_type == nullptr && options.config_file == nullptr) {
+        ::error("Please provide a valid bug type or a config file");
         options.usage();
         return EXIT_FAILURE;
     } else if (options.bug_type == "CRASH") {
         INFO("Ignoring validation bin for crash bug");
         options.validation_bin = nullptr;
         error_type = P4PRUNER::ErrorType::CrashBug;
-    } else if (options.bug_type == "CRASH") {
+    } else if (options.bug_type == "VALIDATION") {
         error_type = P4PRUNER::ErrorType::SemanticBug;
     } else {
         ::error("Please enter a valid bug type. VALIDATION for validation or "
