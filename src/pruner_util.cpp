@@ -63,16 +63,18 @@ void remove_file(cstring file_path) {
 cstring get_file_stem(cstring file_path) {
     cstring file_stem;
     cstring stripped_name = P4PRUNER::remove_extension(file_path);
+
     const char *pos = stripped_name.findlast('/');
     // check if there even is a parent directory
     if (!pos) {
-        return file_path;
+        return stripped_name;
     }
     size_t idx = (size_t)(pos - stripped_name);
     if (idx != std::string::npos)
         file_stem = stripped_name.substr(idx + 1);
     else
         file_stem = stripped_name;
+
     return file_stem;
 }
 
@@ -91,6 +93,7 @@ cstring remove_extension(cstring file_path) {
 ExitInfo get_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     ExitInfo exit_info;
     INFO("Checking exit code.");
+
     if (pruner_conf.err_type == ErrorType::SemanticBug) {
         cstring command = pruner_conf.validation_bin;
         command += " -i ";
@@ -110,6 +113,7 @@ ExitInfo get_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
         exit_info.err_msg = cstring("");
 
     } else {
+        INFO("Trying get_crash_exit_info now");
         exit_info = get_crash_exit_info(name, pruner_conf);
     }
     return exit_info;
@@ -123,7 +127,6 @@ ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     command += name;
     // Apparently popen doesn't like stderr hence redirecting stderr to stdout
     command += " 2>&1";
-
     char buffer[1000];
     cstring result = "";
     FILE *pipe = popen(command, "r");
@@ -155,7 +158,7 @@ ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     }
     exit_info.exit_code = WEXITSTATUS(pclose(pipe));
     exit_info.err_msg = result;
-    INFO(result);
+
     return exit_info;
 }
 
@@ -172,6 +175,7 @@ ErrorType classify_bug(ExitInfo exit_info) {
         cstring comp = exit_info.err_msg.find("Compiler Bug");
 
         if (!comp.isNullOrEmpty()) {
+            INFO("Crash bug");
             return ErrorType::CrashBug;
         }
         cstring err_msg = exit_info.err_msg.find("error");

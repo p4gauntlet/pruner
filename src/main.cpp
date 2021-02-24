@@ -1,4 +1,5 @@
 
+#include <cctype>
 #include <fstream>
 #include <iostream>
 #include <random>
@@ -47,7 +48,8 @@ void process_seed(P4PRUNER::PrunerOptions options) {
 
 P4PRUNER::PrunerConfig get_config_from_json(cstring json_path,
                                             cstring working_dir,
-                                            cstring input_file) {
+                                            cstring input_file,
+                                            P4PRUNER::PrunerOptions options) {
     if (!P4PRUNER::file_exists(json_path)) {
         ::error("Config file %s does not exist! Exiting.", json_path);
         exit(EXIT_FAILURE);
@@ -59,6 +61,7 @@ P4PRUNER::PrunerConfig get_config_from_json(cstring json_path,
     config_file >> config_json;
 
     pruner_conf.exit_code = config_json.at("exit_code");
+
     pruner_conf.compiler = cstring(config_json.at("compiler"));
     pruner_conf.validation_bin = cstring(config_json.at("validation_bin"));
     pruner_conf.prog_before = cstring(config_json.at("prog_before"));
@@ -66,10 +69,16 @@ P4PRUNER::PrunerConfig get_config_from_json(cstring json_path,
     pruner_conf.working_dir = working_dir;
     pruner_conf.allow_undef = config_json.at("allow_undef");
     pruner_conf.err_string = cstring(config_json.at("err_string"));
-    // also store the new output name
-    // TODO(fruffy): Make this an option
-    cstring output_name = P4PRUNER::remove_extension(input_file);
-    output_name += "_stripped.p4";
+
+    cstring output_name = nullptr;
+    if (options.output_file == nullptr) {
+        output_name = P4PRUNER::remove_extension(input_file);
+        output_name += "_stripped.p4";
+    } else {
+        INFO("Using provided output name : " << options.output_file);
+        output_name = options.output_file;
+    }
+
     pruner_conf.out_file_name = output_name;
     return pruner_conf;
 }
@@ -116,7 +125,8 @@ P4PRUNER::PrunerConfig get_conf_from_script(P4PRUNER::PrunerOptions options) {
     conf_file += "/";
     conf_file += file_stem;
     conf_file += "_info.json";
-    return get_config_from_json(conf_file, options.working_dir, options.file);
+    return get_config_from_json(conf_file, options.working_dir, options.file,
+                                options);
 }
 
 P4PRUNER::PrunerConfig get_conf_from_compiler(P4PRUNER::PrunerOptions options) {
@@ -135,11 +145,17 @@ P4PRUNER::PrunerConfig get_conf_from_compiler(P4PRUNER::PrunerOptions options) {
     pruner_conf.prog_post = "";
     pruner_conf.working_dir = options.working_dir;
     pruner_conf.allow_undef = true;
-    cstring output_name = P4PRUNER::remove_extension(options.file);
-    output_name += "_stripped.p4";
+    cstring output_name = nullptr;
+    if (options.output_file == nullptr) {
+        output_name = P4PRUNER::remove_extension(options.file);
+        output_name += "_stripped.p4";
+    } else {
+        output_name = options.output_file;
+    }
     pruner_conf.out_file_name = output_name;
     // auto-fill the exit info from running the compiler on it
     auto exit_info = P4PRUNER::get_exit_info(options.file, pruner_conf);
+
     pruner_conf.exit_code = exit_info.exit_code;
     pruner_conf.err_string = exit_info.err_msg;
     return pruner_conf;
@@ -150,7 +166,6 @@ int main(int argc, char *const argv[]) {
     auto &options = P4PRUNER::P4PrunerContext::get().options();
     options.langVersion = CompilerOptions::FrontendVersion::P4_16;
     const IR::P4Program *program;
-
     if (options.process(argc, argv) != nullptr) {
         options.setInputFile();
     }
@@ -168,23 +183,50 @@ int main(int argc, char *const argv[]) {
         return EXIT_FAILURE;
     }
 
-    P4PRUNER::PrunerConfig pruner_conf;
+    P4PRUNER::ErrorType error_type;
 
+    if (options.bug_type == nullptr && options.config_file == nullptr) {
+        ::error("Please provide a valid bug type or a config file");
+        options.usage();
+        return EXIT_FAILURE;
+    } else if (options.bug_type == "CRASH") {
+        INFO("Ignoring validation bin for crash bug");
+        options.validation_bin = nullptr;
+        error_type = P4PRUNER::ErrorType::CrashBug;
+    } else if (options.bug_type == "VALIDATION") {
+        error_type = P4PRUNER::ErrorType::SemanticBug;
+    } else {
+        ::error("Please enter a valid bug type. VALIDATION for validation or "
+                "CRASH for crash bug");
+        exit(EXIT_FAILURE);
+    }
+
+    P4PRUNER::PrunerConfig pruner_conf;
     if (options.config_file) {
-        pruner_conf = get_config_from_json(options.config_file,
-                                           options.working_dir, options.file);
-    } else if (options.compiler_bin && options.validation_bin) {
+        pruner_conf = get_config_from_json(
+            options.config_file, options.working_dir, options.file, options);
+    } else if (error_type == P4PRUNER::ErrorType::SemanticBug) {
+        if (!(options.validation_bin && options.compiler_bin)) {
+            ::error("Need to provide both a validation binary and a compiler "
+                    "binary to prune a validation bug");
+            options.usage();
+            return EXIT_FAILURE;
+        }
+
         // we are not provided with a config but validation and compiler bin
         // we should infer the expected output from these first
         pruner_conf = get_conf_from_script(options);
-    } else if (options.compiler_bin) {
+
+    } else if (error_type == P4PRUNER::ErrorType::CrashBug) {
+        if (!options.compiler_bin) {
+            ::error("Need to provide a compiler binary to prune a crash bug");
+            options.usage();
+            return EXIT_FAILURE;
+        }
+
         // we are not provided with a config but a compiler bin
         // we should infer the expected output from the compiler bin first
         pruner_conf = get_conf_from_compiler(options);
-    } else {
-        ::error("Need to provide either a validation_bin or a config file!");
-        options.usage();
-        return EXIT_FAILURE;
     }
 
     // create the working dir

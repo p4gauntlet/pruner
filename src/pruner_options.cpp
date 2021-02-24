@@ -1,5 +1,5 @@
 #include "pruner_options.h"
-
+#include <cctype>
 namespace P4PRUNER {
 
 PrunerOptions::PrunerOptions() {
@@ -53,6 +53,22 @@ PrunerOptions::PrunerOptions() {
         },
         "The seed for the random program. "
         "If no seed is provided we generate our own.");
+    registerOption(
+        "--output", "file",
+        [this](const char *arg) {
+            output_file = arg;
+            return true;
+        },
+        "The name of the output file.");
+
+    registerOption(
+        "--bug-type", "type",
+        [this](const char *arg) {
+            bug_type = arg;
+            return true;
+        },
+        "The type of bug, enter VALIDATION for validation bug, CRASH for crash "
+        "bug");
 }
 
 } // namespace P4PRUNER
