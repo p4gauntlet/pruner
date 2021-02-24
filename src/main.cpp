@@ -75,7 +75,7 @@ P4PRUNER::PrunerConfig get_config_from_json(cstring json_path,
         output_name = P4PRUNER::remove_extension(input_file);
         output_name += "_stripped.p4";
     } else {
-        INFO("User provided output name : " << options.output_file);
+        INFO("Using provided output name : " << options.output_file);
         output_name = options.output_file;
     }
 
@@ -166,7 +166,6 @@ int main(int argc, char *const argv[]) {
     auto &options = P4PRUNER::P4PrunerContext::get().options();
     options.langVersion = CompilerOptions::FrontendVersion::P4_16;
     const IR::P4Program *program;
-
     if (options.process(argc, argv) != nullptr) {
         options.setInputFile();
     }
@@ -184,25 +183,29 @@ int main(int argc, char *const argv[]) {
         return EXIT_FAILURE;
     }
 
-    P4PRUNER::PrunerConfig pruner_conf;
+    P4PRUNER::ErrorType error_type;
 
-    switch (options.bug_type) {
-    case P4PRUNER::BugType::CrashBug:
-        options.validation_bin = nullptr;
+    if (options.bug_type == nullptr) {
+        ::error("Please provide a valid bug type");
+        options.usage();
+        return EXIT_FAILURE;
+    } else if (options.bug_type == "CRASH") {
         INFO("Ignoring validation bin for crash bug");
-        break;
-    case P4PRUNER::BugType::SemanticBug:
-        break;
-    default:
-        ::error("Please enter a valid bug type. V for validation or C for "
-                "crash bug");
+        options.validation_bin = nullptr;
+        error_type = P4PRUNER::ErrorType::CrashBug;
+    } else if (options.bug_type == "CRASH") {
+        error_type = P4PRUNER::ErrorType::SemanticBug;
+    } else {
+        ::error("Please enter a valid bug type. VALIDATION for validation or "
+                "CRASH for crash bug");
         exit(EXIT_FAILURE);
     }
 
+    P4PRUNER::PrunerConfig pruner_conf;
     if (options.config_file) {
         pruner_conf = get_config_from_json(
             options.config_file, options.working_dir, options.file, options);
-    } else if (options.bug_type == P4PRUNER::BugType::SemanticBug) {
+    } else if (error_type == P4PRUNER::ErrorType::SemanticBug) {
         if (!(options.validation_bin && options.compiler_bin)) {
             ::error("Need to provide both a validation binary and a compiler "
                     "binary to prune a validation bug");
@@ -214,7 +217,7 @@ int main(int argc, char *const argv[]) {
         // we should infer the expected output from these first
         pruner_conf = get_conf_from_script(options);
 
-    } else if (options.bug_type == P4PRUNER::BugType::CrashBug) {
+    } else if (error_type == P4PRUNER::ErrorType::CrashBug) {
         if (!options.compiler_bin) {
             ::error("Need to provide a compiler binary to prune a crash bug");
             options.usage();

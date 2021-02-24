@@ -3,7 +3,10 @@ import argparse
 import pathlib
 import os
 import subprocess
-import logging as log
+import logging
+import shutil
+
+log = logging.getLogger(__name__)
 
 SEED = 3370029442
 
@@ -37,37 +40,33 @@ def main(args):
     PRUNER_BIN = args.pruner_path.absolute()
     P4_PROG = args.p4prog.absolute()
 
-    if not os.access(COMPILER_BIN, os.X_OK):
-        print("Please provide the path to a valid compiler binary")
-        exit(EXIT_FAILURE)
+    if not shutil.which(COMPILER_BIN):
+        log.error("Please provide the path to a valid compiler binary")
+        return(EXIT_FAILURE)
 
-    if not os.access(VALIDATION_BIN, os.X_OK):
-        print("Please provide the path to a valid validation binary")
-        exit(EXIT_FAILURE)
+    if not shutil.which(VALIDATION_BIN):
+        log.error("Please provide the path to a valid validation binary")
+        return(EXIT_FAILURE)
 
-    if not os.access(PRUNER_BIN, os.X_OK):
-        print("Please provide a valid path to the pruner")
-        exit(EXIT_FAILURE)
+    if not shutil.which(PRUNER_BIN):
+        log.error("Please provide a valid path to the pruner")
+        return(EXIT_FAILURE)
 
     if not P4_PROG.is_file():
-        print("Please provide the path to a valid p4 program")
-        exit(EXIT_FAILURE)
+        log.error("Please provide the path to a valid p4 program")
+        return(EXIT_FAILURE)
 
     cmd_args = f"{PRUNER_BIN} --seed {SEED} --compiler-bin {COMPILER_BIN} --validation-bin {VALIDATION_BIN} {P4_PROG} --bug-type {args.type}"
 
     pruner_result = exec_process(cmd_args)
 
     if(pruner_result == EXIT_FAILURE):
-        print("Error executing pruner,\n stderr :\n" +
-              pruner_result.stderr.decode("utf-8"))
-        print("\nstdout :\n" +
-              pruner_result.stdout)
-        exit(EXIT_FAILURE)
+        return(EXIT_FAILURE)
 
     PRUNED_FILE = pathlib.PosixPath(
         ".".join(str(P4_PROG).split('.')[:-1]) + '_stripped.p4')
 
-    FILE_NAME = os.path.split(P4_PROG)[-1]
+    FILE_NAME = P4_PROG.parts[-1]
 
     ref_file = ".".join(
         str(FILE_NAME).split('.')[:-1]) + '_reference.p4'
@@ -77,21 +76,20 @@ def main(args):
     REFERENCE_FILE = REFERENCE_DIR.joinpath(f"{ref_folder}/{ref_file}")
 
     if REFERENCE_FILE.is_file():
-        if os.system(f"diff {PRUNED_FILE} {REFERENCE_FILE}"):
-            print("Test failed")
-            exit(EXIT_FAILURE)
+        if exec_process(f"diff {PRUNED_FILE} {REFERENCE_FILE}").returncode == EXIT_FAILURE:
+            log.error("Test failed")
+            return(EXIT_FAILURE)
         else:
-            print("Test passed")
-            exit(EXIT_SUCCESS)
+            log.info("Test passed")
+            return(EXIT_SUCCESS)
     else:
-        print("Reference file not found")
-        print(REFERENCE_FILE)
-        exit(EXIT_FAILURE)
+        log.error("Reference file not found")
+        return(EXIT_FAILURE)
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        description="This file takes a p4 file along with a broken(bug-ridden) version of the p4c binary, and a validation binary, passes it to the pruner and then compares it to a reference file to test the working of the pruner.")
+        description="This file takes a p4 file along with a p4c binary with bugs, and a validation binary, passes it to the pruner and then compares it to a reference file to test the working of the pruner.")
     parser.add_argument(
         "-c", "--compiler", dest='compiler', help="The path to the compiler binary", required=True, type=pathlib.Path)
     parser.add_argument(
@@ -102,7 +100,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "-p", "--pruner_path", dest='pruner_path', help="The path to the pruner", required=True, type=pathlib.Path)
     parser.add_argument(
-        "-t", "--type", dest='type', help="Validation or Crash bug [V/C]", required=True, choices=['V', 'C'])
+        "-t", "--type", dest='type', help="Validation or Crash bug [VALIDATION/CRASH]", required=True, choices=['VALIDATION', 'CRASH'])
 
     parser.add_argument("-l", "--log_file", dest="log_file",
                         default="pruner_test.log", help="Specifies name of the log file.")
@@ -113,12 +111,12 @@ if __name__ == '__main__':
                         help="The log level to choose.")
     args = parser.parse_args()
 
-    log.basicConfig(filename=args.log_file,
-                    format="%(levelname)s:%(message)s",
-                    level=getattr(log, args.log_level),
-                    filemode='w')
-    stderr_log = log.StreamHandler()
-    stderr_log.setFormatter(log.Formatter("%(levelname)s:%(message)s"))
-    log.getLogger().addHandler(stderr_log)
+    logging.basicConfig(filename=args.log_file,
+                        format="%(levelname)s:%(message)s",
+                        level=getattr(logging, args.log_level),
+                        filemode='w')
+    stderr_log = logging.StreamHandler()
+    stderr_log.setFormatter(logging.Formatter("%(levelname)s:%(message)s"))
+    logging.getLogger().addHandler(stderr_log)
 
     main(args)

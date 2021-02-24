@@ -35,20 +35,17 @@ JSON configuration file. The file has the following fields:
 ### Pruning with a Configuration File
 If a configuration file is provided only the P4 program is necessary:
 
-`p4pruner --config [P4_CONFIG] [P4_PROG] --bug-type [v/c]`
+`p4pruner --config [P4_CONFIG] [P4_PROG]`
 
 ### Pruning without a Configuration File
 If no configuration file is present, the pruner requires the path to the validation binary that was used, as well as the compiler that was used to translate the P4 program:
 
-`p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] --validation-bin [PATH_TO_VALIDATION_BIN] [P4_PROG] --bug-type [v/c]`
+`p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] --validation-bin [PATH_TO_VALIDATION_BIN] [P4_PROG] --bug-type [VALIDATION/CRASH]`
 
 For crash bugs, the validation binary can be omitted:
 
-`p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] [P4_PROG] --bug-type [v/c]`
+`p4pruner --compiler-bin [PATH_TO_COMPILER_BIN] [P4_PROG] --bug-type [VALIDATION/CRASH]`
 
-You must enter a bug type corresponding to the type of error in your p4 program 
-- Semantic bug/ Validation bug - v
-- Crash bug - c
 
 ## The Pruning Stages
 The pruning passes build on top of each other. The current order of execution is as follows:
@@ -158,14 +155,16 @@ This pass tries to replace each variable with a literal and checks if the bug re
 This is a subclass of `P4::RemoveUnusedDeclarations` where we try to aggressively remove all unused declarations as opposed to the conservative approach of P4C. We do not care about maintaining the functionality of the program only about the bug that exists in it.
 
 ===== 
-# Testing 
+## Testing
 
-There is a testing binary in the `tests` folder called `check_prog.p4`. This file takes a p4 file along with a broken(bug-ridden) version of the p4c binary, and a validation binary, passes it to the pruner and then compares it to a reference file to test the working of the pruner. 
+To reproduce pruning of old bugs, we maintain a folder of binaries with bugs in the `tests` folder.
 
-## Usage
+We use `check_prog.p4` for testing. The program takes a P4 file along with a P4C binary ( and optionally a validation binary) as input, prunes the provided program with a fixed seed, and then compares the output to a reference file. If the output and reference file match, the test passes.
+
+Note that the provided P4 program must have a reference present in the `references` directory.
+
+### Usage
 
 `check_prog.py  --pruner_path [PATH_TO_PRUNER_BIN] --compiler [PATH_TO_COMPILER_BIN] --validation [PATH_TO_VALIDATION_BIN] --p4prog [P4_PROG] --type [V/C]`
 
-Note that the provided p4 prog must be from the ones present in the `references` directory.
-
-Also, there is a folder called `broken_p4c` which will house many versions of the p4c compiler each within a timestamped folder (using `date -I`). 
+Also, there is a folder called `p4c_bins` which will house various versions of the P4C compiler each named after the commit hash of the time it was compiled.

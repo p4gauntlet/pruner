@@ -64,10 +64,11 @@ PrunerOptions::PrunerOptions() {
     registerOption(
         "--bug-type", "type",
         [this](const char *arg) {
-            bug_type = (BugType)(tolower(*arg));
+            bug_type = arg;
             return true;
         },
-        "The type of bug, enter V for validation bug, C for crash bug");
+        "The type of bug, enter VALIDATION for validation bug, CRASH for crash "
+        "bug");
 }
 
 } // namespace P4PRUNER
