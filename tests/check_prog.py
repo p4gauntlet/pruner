@@ -60,7 +60,7 @@ def main(args):
 
     pruner_result = exec_process(cmd_args)
 
-    if(pruner_result == EXIT_FAILURE):
+    if(pruner_result.returncode == EXIT_FAILURE):
         return(EXIT_FAILURE)
 
     PRUNED_FILE = pathlib.PosixPath(
