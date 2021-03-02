@@ -10,10 +10,7 @@ do
     KEY=$(echo $ARGUMENT | cut -f1 -d=)
     VALUE=$(echo $ARGUMENT | cut -f2 -d=)
 
-    case "$KEY" in
-            INSTALL_BMV2)              INSTALL_BMV2=${VALUE} ;;
-            *)
-    esac
+
 
 
 done
