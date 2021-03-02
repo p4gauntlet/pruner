@@ -46,3 +46,6 @@ pruned/
 
 # Sample config files
 *.json
+
+# pycache
+__pycache__/
