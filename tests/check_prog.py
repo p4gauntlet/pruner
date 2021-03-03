@@ -71,7 +71,7 @@ def main(args):
     ref_file = ".".join(
         str(FILE_NAME).split('.')[:-1]) + '_reference.p4'
 
-    ref_folder = 'validation_bugs' if args.type == 'V' else 'crash_bugs'
+    ref_folder = 'validation_bugs' if args.type == 'VALIDATION' else 'crash_bugs'
 
     REFERENCE_FILE = REFERENCE_DIR.joinpath(f"{ref_folder}/{ref_file}")
 
