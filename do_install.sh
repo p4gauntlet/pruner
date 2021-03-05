@@ -3,17 +3,7 @@
 # exit when any command fails
 set -e
 
-# parse custom args
-for ARGUMENT in "$@"
-do
 
-    KEY=$(echo $ARGUMENT | cut -f1 -d=)
-    VALUE=$(echo $ARGUMENT | cut -f2 -d=)
-
-
-
-
-done
 
 # fetch submodules and update apt
 echo "Initializing submodules..."
@@ -78,37 +68,6 @@ pip3 install --user pyroute2 ipaddr ply scapy
 #     libnanomsg-dev \
 #     libgrpc-dev
 
-
-echo "Installing thrift dependency."
-# this only works on Ubuntu 19.10+...
-if sudo apt install -y libthrift-dev ; then
-    sudo apt install -y thrift-compiler
-    echo "Installed thrift with apt."
-else
-# unfortunately we still have to install thrift the manual way...
-    cd ${MODULE_DIR}/behavioral-model
-    wget -N https://archive.apache.org/dist/thrift/0.13.0/thrift-0.13.0.tar.gz
-    tar -xvf thrift-0.13.0.tar.gz
-    cd thrift-0.13.0/
-    ./bootstrap.sh
-    ./configure --without-rs --without-nodejs
-    make
-    sudo make install
-    sudo ldconfig
-fi
-
-pip3 install --user thrift==0.13.0
-
-# build the behavioral model
-echo "Installing behavioral model..."
-cd ${MODULE_DIR}/behavioral-model
-autoreconf -i # this is needed for some reason...
-./autogen.sh
-./configure
-make
-sudo make install
-cd ${SRC_DIR}
-fi
 
 
 # grab the toz3 extension for the p4 compiler
