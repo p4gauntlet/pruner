@@ -6,6 +6,10 @@ set -e
 
 
 # fetch submodules and update apt
+echo "Pulling in gauntlet"
+git clone https://github.com/p4gauntlet/gauntlet
+cd gauntlet
+
 echo "Initializing submodules..."
 git submodule update --init --recursive
 sudo apt-get update
