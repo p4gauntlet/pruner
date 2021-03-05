@@ -1,4 +1,3 @@
-    cmd_args = f"python3 {CHECK_PROG_BIN} --pruner_path {PRUNER_BIN} --compiler {P4C_BIN} --validation {VALIDATION_BIN} --p4prog {file} -ll DEBUG --type CRASH"
 import logging
 from pathlib import Path
 from tests.check_prog import EXIT_FAILURE, EXIT_SUCCESS

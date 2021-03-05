@@ -12,4 +12,4 @@ rm -rf gauntlet/modules/pruner
 ln -s ${SRC_DIR} gauntlet/modules/pruner
 cd gauntlet 
 ./do_install.sh
-
+cd ${SRC_DIR}

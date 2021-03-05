@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import pathlib
-import os
+import sys
 import subprocess
 import logging
 import shutil
@@ -119,4 +119,4 @@ if __name__ == '__main__':
     stderr_log.setFormatter(logging.Formatter("%(levelname)s:%(message)s"))
     logging.getLogger().addHandler(stderr_log)
 
-    main(args)
+    sys.exit(main(args))
