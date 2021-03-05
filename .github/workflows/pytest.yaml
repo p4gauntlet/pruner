@@ -10,4 +10,4 @@ jobs:
         ./do_install.sh
     - name: Test with pytest
       run: |
-        python3 -m pytest test.py -vrf
+        pytest -vrf

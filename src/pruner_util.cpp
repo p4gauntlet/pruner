@@ -122,10 +122,14 @@ ExitInfo get_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
 ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     // The crash bugs variant of get_exit_code
     ExitInfo exit_info;
+    cstring include_dir = get_file_stem(pruner_conf.compiler) + "/p4include/";
     cstring command = pruner_conf.compiler;
     command += " --Wdisable ";
     command += name;
-    // Apparently popen doesn't like stderr hence redirecting stderr to stdout
+    command += " -I ";
+    command += include_dir;
+    // Apparently popen doesn't like stderr hence redirecting stderr to
+    // stdout
     command += " 2>&1";
     char buffer[1000];
     cstring result = "";

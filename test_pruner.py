@@ -1,6 +1,6 @@
+#!/usr/bin/env python3
 import logging
 from pathlib import Path
-from tests.check_prog import EXIT_FAILURE, EXIT_SUCCESS
 import pytest
 import subprocess
 
@@ -10,7 +10,7 @@ EXIT_FAILURE = 1
 
 # configure logging
 log = logging.getLogger(__name__)
-logging.basicConfig(filename="test.log",
+logging.basicConfig(filename="test_pruner.log",
                     format="%(levelname)s:%(message)s",
                     level=logging.INFO,
                     filemode='w')
@@ -55,18 +55,21 @@ def exec_process(cmd, *args, silent=False, **kwargs):
     return result
 
 
-# Crash bugs
-for file in CRASH_DIR.glob('*.p4'):
-    basename = file.name
-    if "reference" in basename:
-        continue
-    cmd_args = f"python3 {CHECK_PROG_BIN} --pruner_path {PRUNER_BIN} --compiler {P4C_BIN} --validation {VALIDATION_BIN} --p4prog {file} -ll DEBUG --type CRASH"
-    assert exec_process(cmd_args).returncode == 0
+@pytest.mark.run_default
+def test_crash_bugs():
+    for file in CRASH_DIR.glob('*.p4'):
+        basename = file.name
+        if "reference" in basename:
+            continue
+        cmd_args = f"python3 {CHECK_PROG_BIN} --pruner_path {PRUNER_BIN} --compiler {P4C_BIN} --validation {VALIDATION_BIN} --p4prog {file} -ll DEBUG --type CRASH"
+        assert exec_process(cmd_args).returncode == 0
 
-# Validation bugs
-for file in VALIDATION_DIR.glob('*.p4'):
-    basename = file.name
-    if "reference" in basename:
-        continue
-    cmd_args = f"python3 {CHECK_PROG_BIN} --pruner_path {PRUNER_BIN} --compiler {P4C_BIN} --validation {VALIDATION_BIN} --p4prog {file} -ll DEBUG --type CRASH"
-    assert exec_process(cmd_args).returncode == 0
+
+@pytest.mark.run_default
+def test_validation_bugs():
+    for file in VALIDATION_DIR.glob('*.p4'):
+        basename = file.name
+        if "reference" in basename:
+            continue
+        cmd_args = f"python3 {CHECK_PROG_BIN} --pruner_path {PRUNER_BIN} --compiler {P4C_BIN} --validation {VALIDATION_BIN} --p4prog {file} -ll DEBUG --type CRASH"
+        assert exec_process(cmd_args).returncode == 0

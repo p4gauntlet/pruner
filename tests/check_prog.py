@@ -78,9 +78,11 @@ def main(args):
     if REFERENCE_FILE.is_file():
         if exec_process(f"diff {PRUNED_FILE} {REFERENCE_FILE}").returncode == EXIT_FAILURE:
             log.error("Test failed")
+            PRUNED_FILE.unlink()
             return(EXIT_FAILURE)
         else:
             log.info("Test passed")
+            PRUNED_FILE.unlink()
             return(EXIT_SUCCESS)
     else:
         log.error("Reference file not found")
