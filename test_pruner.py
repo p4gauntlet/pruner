@@ -42,8 +42,11 @@ PRUNER_BIN = FILE_DIR.parent.joinpath('p4c').joinpath('build').joinpath(
 
 def exec_process(cmd, *args, silent=False, **kwargs):
     log.debug("Executing %s ", cmd)
-    result = subprocess.run(cmd.split(), stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, *args, **kwargs)
+    result = subprocess.run(cmd.split(),
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                            *args,
+                            **kwargs)
     if result.stdout:
         log.debug("Process output: %s", result.stdout.decode("utf-8"))
     if result.returncode != EXIT_SUCCESS and not silent:

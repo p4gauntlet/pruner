@@ -17,7 +17,6 @@ jobs:
         rm -rf $GITHUB_WORKSPACE/../gauntlet/modules/pruner/*
         mv $GITHUB_WORKSPACE/* $GITHUB_WORKSPACE/../gauntlet/modules/pruner
         make -C $GITHUB_WORKSPACE/../gauntlet/modules/p4c/build
-        make -C $GITHUB_WORKSPACE/../gauntlet/modules/p4c/build install
     - name: Test with pytest
       run: |
         cd $GITHUB_WORKSPACE/../gauntlet/modules/pruner
