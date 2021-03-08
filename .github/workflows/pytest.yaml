@@ -3,16 +3,18 @@ on: [push, pull_request]
 jobs:
   test:
     runs-on: ubuntu-18.04
+    env:
+      GAUNTLET_DIR: $GITHUB_WORKSPACE/../gauntlet
     steps:
     - uses: actions/checkout@v1
     - name: Install
       run: |
-        git clone https://github.com/p4gauntlet/gauntlet $GITHUB_WORKSPACE/gauntlet
-        rm -rf $GITHUB_WORKSPACE/gauntlet/modules/pruner/*
-        mv $GITHUB_WORKSPACE/gauntlet $GITHUB_WORKSPACE/gauntlet/modules/pruner
-        cd $GITHUB_WORKSPACE/gauntlet
+        git clone https://github.com/p4gauntlet/gauntlet $GAUNTLET_DIR
+        rm -rf $GAUNTLET_DIR/modules/pruner/*
+        mv $GITHUB_WORKSPACE/* $GAUNTLET_DIR/modules/pruner
+        cd $GAUNTLET_DIR
         ./do_install.sh
     - name: Test with pytest
       run: |
         python3 -m pytest test_pruner.py  -vrf
-      working-directory: $GITHUB_WORKSPACE/gauntlet/modules/pruner
+      working-directory: $GAUNTLET_DIR/modules/pruner
