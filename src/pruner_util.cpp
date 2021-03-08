@@ -140,8 +140,9 @@ ExitInfo get_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
 ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     // The crash bugs variant of get_exit_code
     ExitInfo exit_info;
-    cstring include_dir = get_parent(pruner_conf.compiler) + "/p4include/";
-    cstring command = pruner_conf.compiler;
+    cstring include_dir = get_parent(pruner_conf.compiler) + "/p4include";
+    cstring command = "P4C_16_INCLUDE_PATH=" + include_dir + " ";
+    command += pruner_conf.compiler;
     command += " --Wdisable ";
     command += name;
     command += " -I" + include_dir;
