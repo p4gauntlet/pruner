@@ -15,7 +15,7 @@ jobs:
         make -C $GITHUB_WORKSPACE/../gauntlet/modules/p4c/build
     - name: Test with pytest
       run: |
+        cd $GITHUB_WORKSPACE/../gauntlet/modules/pruner
         echo $(pwd)
         ls -la
         python3 -m pytest test_pruner.py  -vrf
-      working-directory: $GITHUB_WORKSPACE/../gauntlet/modules/pruner
