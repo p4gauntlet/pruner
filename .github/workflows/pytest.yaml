@@ -7,7 +7,12 @@ jobs:
     - uses: actions/checkout@v1
     - name: Install
       run: |
+        git clone https://github.com/p4gauntlet/gauntlet $GITHUB_WORKSPACE/gauntlet
+        rm -rf $GITHUB_WORKSPACE/gauntlet/modules/pruner/*
+        mv $GITHUB_WORKSPACE/gauntlet $GITHUB_WORKSPACE/gauntlet/modules/pruner
+        cd $GITHUB_WORKSPACE/gauntlet
         ./do_install.sh
     - name: Test with pytest
       run: |
-        python3 -m pytest -vrf
+        python3 -m pytest test_pruner.py  -vrf
+      working-directory: $GITHUB_WORKSPACE/gauntlet/modules/pruner
