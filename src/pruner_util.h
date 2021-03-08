@@ -67,6 +67,7 @@ void create_dir(cstring folder_path);
 void remove_file(cstring file_path);
 cstring remove_extension(cstring file_path);
 cstring get_file_stem(cstring file_path);
+cstring get_parent(cstring file_path);
 
 ExitInfo get_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf);
 ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf);
