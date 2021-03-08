@@ -2,7 +2,7 @@ name: test
 on: [push, pull_request]
 jobs:
   test:
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
     - name: Install
@@ -15,5 +15,7 @@ jobs:
         make -C $GITHUB_WORKSPACE/../gauntlet/modules/p4c/build
     - name: Test with pytest
       run: |
+        echo $(pwd)
+        ls -la
         python3 -m pytest test_pruner.py  -vrf
       working-directory: $GITHUB_WORKSPACE/../gauntlet/modules/pruner
