@@ -8,10 +8,11 @@ jobs:
     - name: Install
       run: |
         git clone https://github.com/p4gauntlet/gauntlet $GITHUB_WORKSPACE/../gauntlet
-        rm -rf $GITHUB_WORKSPACE/../gauntlet/modules/pruner/*
-        mv $GITHUB_WORKSPACE/* $GITHUB_WORKSPACE/../gauntlet/modules/pruner
         cd $GITHUB_WORKSPACE/../gauntlet
         ./do_install.sh
+        rm -rf $GITHUB_WORKSPACE/../gauntlet/modules/pruner/*
+        mv $GITHUB_WORKSPACE/* $GITHUB_WORKSPACE/../gauntlet/modules/pruner
+        make -C $GITHUB_WORKSPACE/../gauntlet/modules/p4c/build
     - name: Test with pytest
       run: |
         python3 -m pytest test_pruner.py  -vrf
