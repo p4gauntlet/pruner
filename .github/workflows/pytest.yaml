@@ -9,13 +9,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v1
-    - name: Install
+    - name: Install Gauntlet
       run: |
         git clone https://github.com/p4gauntlet/gauntlet $GITHUB_WORKSPACE/../gauntlet
         cd $GITHUB_WORKSPACE/../gauntlet
         ./do_install.sh
+    - name: Refresh Pruner
+      run: |
         rm -rf $GITHUB_WORKSPACE/../gauntlet/modules/pruner/*
-        mv $GITHUB_WORKSPACE/* $GITHUB_WORKSPACE/../gauntlet/modules/pruner
+        mv $GITHUB_WORKSPACE $GITHUB_WORKSPACE/../gauntlet/modules/pruner
         make -C $GITHUB_WORKSPACE/../gauntlet/modules/p4c/build
     - name: Test with pytest
       run: |
