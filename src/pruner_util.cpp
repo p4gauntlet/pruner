@@ -149,7 +149,6 @@ ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     // stdout
     command += " 2>&1";
     // set the include path to the right directory
-    printf("COMMAND %s\n", command);
     char buffer[1000];
     cstring result = "";
     FILE *pipe = popen(command, "r");
@@ -179,8 +178,6 @@ ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
         pclose(pipe);
         throw;
     }
-    printf("ERRROROROROR %s\n", result);
-    std::cerr << "result " << result << std::endl;
     exit_info.exit_code = WEXITSTATUS(pclose(pipe));
     exit_info.err_msg = result;
     return exit_info;
