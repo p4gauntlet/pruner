@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import argparse
 import pathlib
-import os
+import sys
 import subprocess
 import logging
 import shutil
@@ -60,7 +60,7 @@ def main(args):
 
     pruner_result = exec_process(cmd_args)
 
-    if(pruner_result == EXIT_FAILURE):
+    if(pruner_result.returncode == EXIT_FAILURE):
         return(EXIT_FAILURE)
 
     PRUNED_FILE = pathlib.PosixPath(
@@ -71,16 +71,18 @@ def main(args):
     ref_file = ".".join(
         str(FILE_NAME).split('.')[:-1]) + '_reference.p4'
 
-    ref_folder = 'validation_bugs' if args.type == 'V' else 'crash_bugs'
+    ref_folder = 'validation_bugs' if args.type == 'VALIDATION' else 'crash_bugs'
 
     REFERENCE_FILE = REFERENCE_DIR.joinpath(f"{ref_folder}/{ref_file}")
 
     if REFERENCE_FILE.is_file():
         if exec_process(f"diff {PRUNED_FILE} {REFERENCE_FILE}").returncode == EXIT_FAILURE:
             log.error("Test failed")
+            PRUNED_FILE.unlink()
             return(EXIT_FAILURE)
         else:
             log.info("Test passed")
+            PRUNED_FILE.unlink()
             return(EXIT_SUCCESS)
     else:
         log.error("Reference file not found")
@@ -119,4 +121,4 @@ if __name__ == '__main__':
     stderr_log.setFormatter(logging.Formatter("%(levelname)s:%(message)s"))
     logging.getLogger().addHandler(stderr_log)
 
-    main(args)
+    sys.exit(main(args))

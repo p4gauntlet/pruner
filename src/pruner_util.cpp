@@ -78,6 +78,24 @@ cstring get_file_stem(cstring file_path) {
     return file_stem;
 }
 
+cstring get_parent(cstring file_path) {
+    cstring file_stem;
+    cstring stripped_name = P4PRUNER::remove_extension(file_path);
+
+    const char *pos = stripped_name.findlast('/');
+    // check if there even is a parent directory
+    if (!pos) {
+        return stripped_name;
+    }
+    size_t idx = (size_t)(pos - stripped_name);
+    if (idx != std::string::npos)
+        file_stem = stripped_name.substr(0, idx);
+    else
+        file_stem = "";
+
+    return file_stem;
+}
+
 cstring remove_extension(cstring file_path) {
     // find the last dot
     const char *last_dot = file_path.findlast('.');
@@ -122,11 +140,15 @@ ExitInfo get_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
 ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     // The crash bugs variant of get_exit_code
     ExitInfo exit_info;
-    cstring command = pruner_conf.compiler;
+    cstring include_dir = get_parent(pruner_conf.compiler) + "/../../p4include";
+    cstring command = "P4C_16_INCLUDE_PATH=" + include_dir + " ";
+    command += pruner_conf.compiler;
     command += " --Wdisable ";
     command += name;
-    // Apparently popen doesn't like stderr hence redirecting stderr to stdout
+    // Apparently popen doesn't like stderr hence redirecting stderr to
+    // stdout
     command += " 2>&1";
+    // set the include path to the right directory
     char buffer[1000];
     cstring result = "";
     FILE *pipe = popen(command, "r");
@@ -158,7 +180,6 @@ ExitInfo get_crash_exit_info(cstring name, P4PRUNER::PrunerConfig pruner_conf) {
     }
     exit_info.exit_code = WEXITSTATUS(pclose(pipe));
     exit_info.err_msg = result;
-
     return exit_info;
 }
 
