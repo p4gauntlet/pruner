@@ -1,6 +1,5 @@
 #include <algorithm> // std::min
 
-#include "ir/visitor.h"
 #include "statement_pruner.h"
 
 namespace P4PRUNER {

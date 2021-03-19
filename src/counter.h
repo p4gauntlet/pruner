@@ -1,6 +1,8 @@
-#ifndef _COUNTER_H
-#define _COUNTER_H
-#include "ir/visitor.h"
+#ifndef _PRUNER_SRC_COUNTER_H
+#define _PRUNER_SRC_COUNTER_H
+
+#include "ir/ir.h"
+
 namespace P4PRUNER {
 class Counter : public Inspector {
  public:
@@ -11,4 +13,4 @@ class Counter : public Inspector {
     Counter() { statements = 0; }
 };
 } // namespace P4PRUNER
-#endif /* _COUNTER_H */
+#endif /* _PRUNER_SRC_COUNTER_H */

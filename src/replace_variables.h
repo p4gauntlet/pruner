@@ -1,4 +1,3 @@
-
 #ifndef _REPLACE_VARIABLES_H
 #define _REPLACE_VARIABLES_H
 // #include <vector>
@@ -7,6 +6,7 @@
 #include "pruner_util.h"
 
 #include "frontends/common/resolveReferences/resolveReferences.h"
+#include "frontends/p4/typeMap.h"
 
 namespace P4PRUNER {
 

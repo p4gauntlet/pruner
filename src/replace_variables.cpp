@@ -1,6 +1,5 @@
 #include "vector"
 
-#include "ir/visitor.h"
 #include "replace_variables.h"
 
 #include "frontends/common/constantFolding.h"
@@ -40,7 +39,7 @@ const IR::P4Program *apply_replace(const IR::P4Program *program,
     const IR::P4Program *temp;
 
     PassManager pass_manager({new P4::ResolveReferences(&refMap, true),
-                            new P4::TypeInference(&refMap, &typeMap, false)});
+                              new P4::TypeInference(&refMap, &typeMap, false)});
 
     temp = program->apply(pass_manager);
 
